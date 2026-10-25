@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: If you use this dataset, please cite it as below.
+type: dataset
+title: Calibrated pathogenicity predictions for 783 human transporter and ion-channel genes
+authors:
+  - family-names: Abo-Dahab
+    given-names: Youssef
+    affiliation: University of California, San Francisco
+  - family-names: Chun
+    given-names: Joanne
+    affiliation: University of California, San Francisco
+  - family-names: Giacomini
+    given-names: Kathleen M.
+    affiliation: University of California, San Francisco
+license: CC-BY-NC-SA-4.0
+version: 1.0.0
+date-released: 2026-10-21

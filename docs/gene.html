@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gene | Transporter Variants</title>
+<meta name="description" content="Calibrated ACMG evidence, protein map and variant table for one transporter or ion-channel gene.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://alphafold.ebi.ac.uk" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Spectral:ital,wght@0,500;0,600;1,500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="index.html" aria-label="Transporter Variants, home">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="0" y="9.5" width="26" height="7" rx="1" fill="var(--lipid)" opacity=".75"/><path d="M2.5 4c4 0 4 18 8 18s4-18 8-18 4 18 5 18" fill="none" stroke="var(--ps)" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <span>Transporter Variants</span>
+    </a>
+    <div class="search" data-search>
+      <svg class="glass" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <label class="visually-hidden" for="q-top">Search by gene, rsID or HGVS</label>
+      <input id="q-top" type="search" autocomplete="off" spellcheck="false" placeholder="Gene, rsID or HGVS">
+    </div>
+    <nav aria-label="Sections">
+      <a href="index.html#evidence">Evidence</a>
+      <a href="index.html#browse">Genes</a>
+      <a href="index.html#download">Download</a>
+    </nav>
+  </div>
+</header>
+
+<main id="app"><div class="wrap loading">Loading…</div></main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <p>Predictions are for research use and are not a clinical classification. Read the <a href="index.html#caveats">notes on use</a> before relying on any value.</p>
+      <p>Protein topology and sites from UniProtKB; structures from AlphaFold DB, both CC BY 4.0.</p>
+    </div>
+    <div>
+      <p>Native track: CC BY 4.0. Routed track: CC BY-NC-SA 4.0, inherited from AlphaMissense.</p>
+      <p><a href="index.html#cite">How to cite</a></p>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/common.js"></script>
+<script src="assets/map.js"></script>
+<script src="assets/gene.js"></script>
+</body>
+</html>
