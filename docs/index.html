@@ -105,6 +105,7 @@
         <div><h3>Check AlphaMissense coverage on the routed track</h3><p>Where <code>has_alphamissense</code> is FALSE, AlphaMissense does not cover the variant and the routed track serves the native score. The <code>v2_plus</code> column imputes AlphaMissense there and should not be read.</p></div>
         <div><h3>Mechanism is a hypothesis generator</h3><p>The mechanism layer, written only for confidently pathogenic variants, transfers across proteins in aggregate. Its per-variant calls on genes without measurements are unproven: on SLC19A2 and SLC19A3, two independent models agreed at Spearman 0.009, against 0.536 where the answer is known.</p></div>
         <div><h3>ClinVar is partly circular</h3><p>ClinVar assertions are themselves informed in part by computational evidence, so some circularity cannot be excluded from any benchmark built on them. The within-class results are the more conservative reading.</p></div>
+        <div><h3>Some missense variants have only a class-level score</h3><p><span id="cls-n">2,852</span> missense variants could not be placed on the UniProt sequence: multi-nucleotide changes, or residues numbered on a different transcript. They were scored by the consequence-class model, which knows only that they are missense, so their evidence is weak. They are flagged on every gene page.</p></div>
         <div><h3>The protein map summarises existing variants</h3><p>Regional colours average the predictions for ClinVar variants that have been reported near each residue. They are not a saturation scan, and a critical region with few reported variants shows as grey.</p></div>
         <div><h3>Research use</h3><p>These are predictions, calibrated and validated, but not a clinical classification. Combine them with other evidence under the ACMG framework, as the evidence strengths are designed for.</p></div>
       </div>
@@ -154,7 +155,7 @@
           <div class="sha" id="sha-routed"></div>
         </article>
       </div>
-      <p class="docs-links">Also: <a href="downloads/README.md">README</a> <a href="downloads/DATA_DICTIONARY.md">Data dictionary</a> <a href="downloads/CALIBRATION_CHECK.md">Calibration check</a> <a href="downloads/CITATION.cff">CITATION.cff</a> <a href="downloads/CHECKSUMS.txt">SHA-256 checksums</a></p>
+      <p class="docs-links">Also: <a href="downloads/README.md">README</a> <a href="downloads/DATA_DICTIONARY.md">Data dictionary</a> <a href="downloads/CALIBRATION_CHECK.md">Calibration check</a> <a href="downloads/CITATION.cff">CITATION.cff</a> <a href="downloads/CHECKSUMS.txt">SHA-256 checksums</a> <a href="downloads/COMPLETION_115.md">1.0.1 completion report</a></p>
 
       <h3 style="margin-top:44px">Columns</h3>
       <table class="coltable">
@@ -184,7 +185,7 @@
     <div class="wrap">
       <h2 id="ci-h">Cite</h2>
       <p class="prose muted">If you use these predictions, cite the dataset. If you use the routed track, cite AlphaMissense too.</p>
-      <div class="cite">Abo-Dahab Y, Chun J, Giacomini KM. <i>Calibrated pathogenicity predictions for 783 human transporter and ion-channel genes.</i> Version 1.0.0, released 21 October 2026. https://joevondahab.github.io/transporter-variants/</div>
+      <div class="cite">Abo-Dahab Y, Chun J, Giacomini KM. <i>Calibrated pathogenicity predictions for 783 human transporter and ion-channel genes.</i> Version <span class="relver">1.0.1</span>, released <span class="reldate">25 October 2026</span>. https://joevondahab.github.io/transporter-variants/</div>
       <div class="cite">Cheng J, Novati G, Pan J, et al. Accurate proteome-wide missense variant effect prediction with AlphaMissense. <i>Science</i> 381, eadg7492 (2023). <a href="https://doi.org/10.1126/science.adg7492">doi:10.1126/science.adg7492</a></div>
       <p class="small muted" style="margin-top:18px">Evidence thresholds: Tavtigian SV et al., Modeling the ACMG/AMP variant classification guidelines as a Bayesian classification framework, <i>Genet Med</i> 20, 1054–1060 (2018). Protein maps use UniProtKB annotations (CC BY 4.0<span id="up-rel"></span>) and AlphaFold DB models (CC BY 4.0), fetched from <a href="https://alphafold.ebi.ac.uk">alphafold.ebi.ac.uk</a> when a gene page opens.</p>
     </div>
@@ -195,7 +196,7 @@
   <div class="wrap">
     <div>
       <p>Youssef Abo-Dahab, Joanne Chun and Kathleen M. Giacomini, Department of Bioengineering and Therapeutic Sciences, University of California, San Francisco. Correspondence: <a href="mailto:youssef.nageh@gmail.com">youssef.nageh@gmail.com</a>.</p>
-      <p>Release 1.0.0, 21 October 2026. Predictions are for research use and are not a clinical classification.</p>
+      <p>Release <span class="relver">1.0.1</span>, <span class="reldate">25 October 2026</span>. Predictions are for research use and are not a clinical classification.</p>
     </div>
     <div>
       <p>Native track and site data derived from it: CC BY 4.0. Routed track and its pages on this site: CC BY-NC-SA 4.0, inherited from AlphaMissense.</p>

@@ -44,9 +44,9 @@
         vid: r[0], rs: r[1], hp: r[2] >= 0 ? pre[r[2]] : "", hs: r[3], cons: r[4], pv: r[5],
         clinsig: r[6] == null ? "" : cs[r[6]], review: r[7] == null ? "" : rv[r[7]],
         train: r[8] === 1, ev: r[9], score: r[10], lr: r[11], act: r[12], mech: r[13],
-        lis: r[14] === 1, pos: r[15],
+        lis: r[14] === 1, pos: r[15], cls: r[16] === 1,
       };
-      if (routed) { o.plus = r[16] === 1; o.hasAM = r[17] === 1; o.v2n = r[18]; o.v2p = r[19]; o.am = r[20]; }
+      if (routed) { o.plus = r[17] === 1; o.hasAM = r[18] === 1; o.v2n = r[19]; o.v2p = r[20]; o.am = r[21]; }
       o.hgvs = o.hp + o.hs;
       o.mclip = o.mech == null ? null : Math.max(0, Math.min(1, o.mech));
       return o;
@@ -227,7 +227,8 @@
     if (!topo.hasTM) notes.push(topo.annotated ? "UniProt annotates no membrane-spanning helix for this protein, so the chain is drawn on one side." : "UniProt gives no membrane topology for this protein, so the chain is drawn as a line without a membrane.");
     else if (topo.inferred) notes.push("Some loop orientations are not annotated in UniProt and were inferred by alternating sides across each helix.");
     if (m.uniprot_sequence_matches === false) notes.push("UniProt has revised this sequence since the model was run, so its feature annotations are not drawn.");
-    if (S.unplaced) notes.push(`${fmt(S.unplaced)} missense variant${S.unplaced > 1 ? "s are" : " is"} numbered on a ClinVar transcript whose residue does not match this sequence, so ${S.unplaced > 1 ? "they are" : "it is"} left off the map. ${S.unplaced > 1 ? "They remain" : "It remains"} in the table.`);
+    const nCls = S.rows.filter(o => o.cls).length;
+    if (nCls) notes.push(`${fmt(nCls)} missense variant${nCls > 1 ? "s" : ""} could not be placed on this sequence (a multi-nucleotide change, or a residue numbered on a different transcript). ${nCls > 1 ? "They carry" : "It carries"} a class-level score only and ${nCls > 1 ? "are" : "is"} left off the map; see the “Class-level score” flag in the table.`);
     notes.push("Drag across the map to zoom into a region; double-click or use “Show whole protein” to return.");
     app.querySelector("#mapnote").textContent = notes.join(" ");
   }
@@ -370,6 +371,7 @@
   function flags(o) {
     const b = [];
     if (o.train) b.push(`<span class="badge train" title="The model saw this variant during fitting. Exclude it from any accuracy estimate.">Seen in training</span>`);
+    if (o.cls) b.push(`<span class="badge noam" title="ClinVar's protein change could not be placed on the UniProt sequence, so this missense variant was scored by the consequence-class model, which knows it is missense but not where or what. Its evidence is weak.">Class-level score</span>`);
     if (S.track === "routed") {
       b.push(o.hasAM ? `<span class="badge am" title="AlphaMissense covers this variant; the score combines it with our model.">AlphaMissense</span>`
         : `<span class="badge noam" title="AlphaMissense does not cover this variant; the native score is served.">No AlphaMissense</span>`);
@@ -396,6 +398,7 @@
     if (o.mech != null) lay.push(`<dt>Mechanism <span class="tag-exp">exploratory</span></dt><dd>${o.mclip.toFixed(2)}, ${mechWord(o.mclip)}${o.mech !== o.mclip ? ` (model output ${o.mech.toFixed(3)}, shown clipped to the 0 to 1 range)` : ""}</dd>`);
     if (o.lis && lay.length) lay.push(`<dt>In-sample</dt><dd>This protein's deep mutational scan trained these layers.</dd>`);
     const notes = [];
+    if (o.cls) notes.push("<b>Class-level score.</b> ClinVar's protein change could not be placed on the UniProt sequence used by the model (a multi-nucleotide change, or a residue numbered on a different transcript), so this missense variant was scored by the consequence-class model rather than the protein-level one. It carries no activity or mechanism value, and its evidence reflects missense variants in general, not this substitution.");
     if (o.train) notes.push("<b>Seen in training.</b> The model was fitted on this variant's ClinVar label, so its prediction is not an independent test. Leave it out of any accuracy estimate.");
     if (routed && !o.hasAM) notes.push("AlphaMissense does not cover this variant, so the routed track serves the native score. The “with AlphaMissense” value imputes AlphaMissense and is not meaningful here.");
     if (o.mech != null) notes.push("Mechanism is a hypothesis generator. Its per-variant reliability on genes without measurements is unproven.");
@@ -471,13 +474,13 @@
   function downloadGene() {
     const routed = S.track === "routed";
     const cols = ["gene", "variation_id", "rsid", "hgvs", "consequence", "protein_variant", "clinsig", "review_status",
-      "in_training", "evidence", "lr", "score", ...(routed ? ["served_by", "has_alphamissense", "v2_native", "v2_plus", "alphamissense"] : []),
+      "in_training", "class_level_score", "evidence", "lr", "score", ...(routed ? ["served_by", "has_alphamissense", "v2_native", "v2_plus", "alphamissense"] : []),
       "activity_pred", "mechanism_pred", "layers_in_sample"];
     const q = v => v == null ? "" : /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
     const lines = [cols.join(",")];
     for (const o of S.rows) {
       lines.push([GENE, o.vid, o.rs ? `rs${o.rs}` : "", o.hgvs, S.idx.cons[o.cons], o.pv, o.clinsig, o.review,
-        o.train ? "TRUE" : "FALSE", S.idx.ev[o.ev], o.lr, o.score,
+        o.train ? "TRUE" : "FALSE", o.cls ? "TRUE" : "FALSE", S.idx.ev[o.ev], o.lr, o.score,
         ...(routed ? [o.plus ? "plus" : "native", o.hasAM ? "TRUE" : "FALSE", o.v2n, o.v2p, o.am] : []),
         o.act, o.mech, o.act == null && o.mech == null ? "" : (o.lis ? "TRUE" : "FALSE")].map(q).join(","));
     }

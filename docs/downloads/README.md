@@ -34,3 +34,7 @@ Use `evidence`, not `score`. A 0.5 cut-off over-calls badly: the model's trainin
 - The `plus` track imputes AlphaMissense where it is absent, so trust it only where `has_alphamissense` is TRUE; otherwise read the `native` track.
 - Our model alone loses to AlphaMissense on human missense variants (0.9163 against 0.9455); the routed track wins (0.9538) because it combines them. On every other variant class AlphaMissense offers nothing and ours reaches 0.9851.
 - ClinVar assertions are partly informed by computational evidence, so some circularity cannot be excluded from any benchmark built on them.
+
+## Version 1.0.1
+
+The activity and mechanism layers are completed for missense variants whose ESM-2 embeddings were in the training-pool feature files rather than the published-variant file, including every variant in SLC19A2 and SLC19A3. Activity now covers 176,153 missense variants. Pathogenicity scores, likelihood ratios and evidence bins are unchanged, and every activity or mechanism value present in 1.0.0 is unchanged. Missense variants whose ClinVar reference residue does not match the UniProt sequence still carry no activity or mechanism.

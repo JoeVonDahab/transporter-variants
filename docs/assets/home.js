@@ -41,6 +41,11 @@
     <caption>${fmt(cal.n)} labelled out-of-sample variants across ${fmt(cal.genes)} genes. The dashed line is the base rate, ${cal.base_rate}% pathogenic. The top two bins invert by 0.3 points, which is saturation above 99% rather than miscalibration.${unscored ? ` ${fmt(unscored.n)} variants were unscored in this check.` : ""}</caption>`;
 
   if (S.uniprot_release) document.getElementById("up-rel").textContent = `, release ${S.uniprot_release}`;
+  const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const [yy, mo, dd] = S.released.split("-").map(Number);
+  document.querySelectorAll(".relver").forEach(e => { e.textContent = S.version; });
+  document.querySelectorAll(".reldate").forEach(e => { e.textContent = `${dd} ${MONTHS[mo - 1]} ${yy}`; });
+  if (S.class_level_missense != null) document.getElementById("cls-n").textContent = fmt(S.class_level_missense);
 
   /* ---------- downloads ---------- */
   const mb = b => (b / 1e6).toFixed(1) + " MB";

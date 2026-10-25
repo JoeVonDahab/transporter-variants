@@ -30,3 +30,19 @@ Likelihood ratios are binned at the odds of pathogenicity behind the ACMG combin
 ## Observed purity of each bin
 
 Measured on gene-disjoint halves of the held-out labelled set, so no gene calibrated the bin its own variants fall in. See `CALIBRATION_CHECK.md` for the full table.
+
+## Activity and mechanism layers
+
+| Column | Meaning |
+|---|---|
+| `activity_pred` | predicted transport or enzymatic activity, 0 (abolished) to 1 (wild-type-like), on the rank scale the deep mutational scans were normalised to. Defined for missense variants with ESM-2 features. |
+| `mechanism_pred` | among variants called confidently pathogenic, the predicted probability that loss of function is **activity-specific** (protein reaches its compartment but cannot work) rather than **expression-driven** (never arrives). A regression output, so a few values fall slightly outside 0 to 1. Blank elsewhere, because the question is meaningless for a variant that does not abolish function. |
+| `layers_in_sample` | TRUE if the variant's protein carries a deep mutational scan that trained these two models. Their predictions are in-sample for those proteins. |
+
+### How much to trust them
+
+Activity transfers to a protein with no measurements at Spearman 0.50 alone and 0.54 combined with AlphaMissense, against 0.52 for AlphaMissense alone; it is a graded estimate, not a call.
+
+Mechanism transfers at AUC 0.78 across proteins and replicates at 0.73 on assay pairs curated by ProteinGym, including 0.70 on a fungal enzyme absent from our data. But **per-variant calls on genes with no measurements have not been shown to be reliable**: on SLC19A2 and SLC19A3 two independent models agreed at 0.009 where they agree at 0.536 on proteins with known answers. Treat this column as a hypothesis generator, not as evidence about any individual variant.
+
+The two layers were fitted on deep mutational scans, not on ClinVar labels, so `in_training` (which refers to the pathogenicity model) does not make them in-sample.
