@@ -79,6 +79,7 @@
           </div>
           <p class="tnote" id="tnote"></p>
         </div>
+        <p class="evbar-h">How this gene's ${fmt(r[4])} variants split across evidence levels</p>
         <div class="evbar" id="evbar" aria-hidden="true"></div>
         <div class="evlegend" id="evlegend"></div>
       </header>
@@ -111,7 +112,7 @@
             <div class="mol" id="mol">
               <div class="viewer"></div>
               <div class="molmsg"></div>
-              <div class="molhint">Drag to rotate, scroll to zoom, click a residue to select it. Colours here are averaged over residues within about 10 Å of each other.</div>
+              <div class="molhint">Drag to rotate. Click the structure, then scroll to zoom. Click a residue to select it. Colours are averaged over residues within about 10 Å of each other.</div>
             </div>
             <aside class="resinfo" id="resinfo" aria-live="polite"></aside>
           </div>
@@ -267,13 +268,13 @@
     for (const f of feats) rows.push(`<dt>${esc(f[0])}</dt><dd>${esc(f[3])}</dd>`);
     for (const k of ["patho", "act", "mech"]) {
       const v = S.wave.profiles[k].val[p];
-      if (!Number.isNaN(v)) rows.push(`<dt>${TVMap.METRICS[k].label}${k === "mech" ? " <span class=\"tag-exp\">exploratory</span>" : ""}</dt><dd>${esc(TVMap.METRICS[k].describe(v))}, along the sequence</dd>`);
+      if (!Number.isNaN(v)) rows.push(`<dt>${TVMap.METRICS[k].short} nearby${k === "mech" ? " <span class=\"tag-exp\">exploratory</span>" : ""}</dt><dd>${esc(TVMap.METRICS[k].describe(v))}</dd>`);
     }
     if (S.mol && S.mol.mapped && S.metric in TVMap.METRICS) {
       const v3 = S.mol.regional(p);
-      if (v3 !== undefined) rows.push(`<dt>In 3D</dt><dd>${esc(TVMap.METRICS[S.metric].describe(v3))}, averaged over residues within about 10 Å</dd>`);
+      if (v3 !== undefined) rows.push(`<dt>${TVMap.METRICS[S.metric].short} nearby in 3D</dt><dd>${esc(TVMap.METRICS[S.metric].describe(v3))}</dd>`);
     }
-    if (S.mol && S.mol.plddt && S.mol.plddt[p] != null) rows.push(`<dt>AlphaFold pLDDT</dt><dd>${S.mol.plddt[p].toFixed(0)}${S.mol.plddt[p] < 50 ? ", very low: likely disordered" : ""}</dd>`);
+    if (S.mol && S.mol.plddt && S.mol.plddt[p] != null) rows.push(`<dt>AlphaFold confidence</dt><dd>${S.mol.plddt[p].toFixed(0)} of 100${S.mol.plddt[p] < 50 ? ", very low, likely disordered" : ""}</dd>`);
     box.innerHTML = `
       <h3>${esc(aa)}${p}</h3>
       <dl>${rows.join("")}</dl>
@@ -324,8 +325,9 @@
         `<button type="button" class="chip" data-ev="${i}" aria-pressed="${S.ev.has(i)}"><span class="dot" style="--c:var(--${TV.EV_KEYS[i]})"></span>${EV_LABEL[i]}<span class="ct">${fmt(c)}</span></button>` : "").join("")}</div></div>
       <div class="row">
         <span class="lbl">Find</span>
-        <input type="search" id="tq" placeholder="Find in this gene: c.515G>A, p.Gly172Asp, rs…" value="${esc(S.text)}" aria-label="Filter variants by HGVS, protein change or rsID">
-        <label class="check"><input type="checkbox" id="extrain" ${S.excludeTraining ? "checked" : ""}> Hide the ${fmt(nTrain)} variants seen in training</label>
+        <input type="search" id="tq" placeholder="Find a variant, e.g. c.515G>A or p.Gly172Asp" value="${esc(S.text)}" aria-label="Filter variants by HGVS, protein change or rsID">
+        ${nTrain ? `<label class="check"><input type="checkbox" id="extrain" ${S.excludeTraining ? "checked" : ""}> Hide the ${fmt(nTrain)} variants seen in training</label>`
+          : `<span class="small muted">No variant in this gene was used in training.</span>`}
         ${S.pos ? `<span class="active-filter">${S.range ? `Residues ${esc(S.meta.sequence[S.range[0] - 1])}${S.range[0]}–${esc(S.meta.sequence[S.range[1] - 1])}${S.range[1]}` : `Residue ${esc((S.meta.sequence || "")[S.pos - 1] || "")}${S.pos}`}<button type="button" id="xpos" aria-label="Clear residue filter">×</button></span>` : ""}
         <button type="button" class="btn ghost" id="dlgene" style="margin-left:auto">Download this gene (CSV, ${TRACK[S.track].license})</button>
       </div>`;
@@ -338,7 +340,8 @@
     const tq = box.querySelector("#tq");
     let tmr;
     tq.addEventListener("input", () => { clearTimeout(tmr); tmr = setTimeout(() => { S.text = tq.value; S.page = 0; renderTable(); setURL(); }, 160); });
-    box.querySelector("#extrain").addEventListener("change", e => { S.excludeTraining = e.target.checked; S.page = 0; renderTable(); });
+    const ex = box.querySelector("#extrain");
+    if (ex) ex.addEventListener("change", e => { S.excludeTraining = e.target.checked; S.page = 0; renderTable(); });
     const xp = box.querySelector("#xpos");
     if (xp) xp.addEventListener("click", () => selectPos(null));
     box.querySelector("#dlgene").addEventListener("click", downloadGene);

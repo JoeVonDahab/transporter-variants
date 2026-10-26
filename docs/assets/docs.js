@@ -15,6 +15,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, { rootMargin: "-20% 0px -70% 0px" });
   document.querySelectorAll(".doc section[id]").forEach(s => io.observe(s));
+  links.forEach(a => a.addEventListener("click", () => {
+    links.forEach(x => x.classList.remove("on"));
+    a.classList.add("on");
+  }));
 });
 
 (async () => {

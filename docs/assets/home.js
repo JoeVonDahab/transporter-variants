@@ -5,7 +5,7 @@
   const { esc, fmt, getJSON, EV_KEYS } = TV;
   let idx;
   try { idx = await TV.index(); } catch (e) {
-    document.getElementById("genes").innerHTML = `<p class="muted" style="padding:16px">The gene list could not be loaded (${esc(e.message)}). Reload the page to try again.</p>`;
+    document.getElementById("genelist").innerHTML = `<p class="muted" style="padding:16px">The gene list could not be loaded (${esc(e.message)}). Reload the page to try again.</p>`;
     return;
   }
   const S = idx.summary;
@@ -33,7 +33,7 @@
     const more = document.getElementById("gmore");
     more.hidden = !cut;
     more.textContent = `Show all ${fmt(list.length)} genes`;
-    document.getElementById("genes").innerHTML = shown.length ? shown.map(g => {
+    document.getElementById("genelist").innerHTML = shown.length ? shown.map(g => {
       const bins = g[6], n = g[4];
       return `<a href="${TV.geneUrl(g[0])}"><span class="n">${fmt(n)} variants</span><span class="g">${esc(g[0])}</span><span class="p" title="${esc(g[3])}">${esc(g[3] || " ")}</span>
         <span class="minibar">${bins.map((c, i) => c ? `<i style="width:${(c / n * 100).toFixed(2)}%;background:var(--${EV_KEYS[i]})"></i>` : "").join("")}</span></a>`;
@@ -65,6 +65,11 @@
     host.insertAdjacentHTML("beforeend", `<div class="map-foot">${TVMap.legendRamp("patho")}</div>`);
   } catch (e) {
     document.getElementById("hero-wave").hidden = true;
+  }
+  // the map and gene list arrive after the browser has jumped to #genes; jump again now they are in place
+  if (location.hash) {
+    const t = document.getElementById(location.hash.slice(1));
+    if (t) t.scrollIntoView();
   }
 
   /* ---------- example searches ---------- */

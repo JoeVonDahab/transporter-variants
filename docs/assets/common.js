@@ -14,17 +14,21 @@ const TV = (() => {
   const AA3 = { Ala: "A", Arg: "R", Asn: "N", Asp: "D", Cys: "C", Gln: "Q", Glu: "E", Gly: "G", His: "H",
     Ile: "I", Leu: "L", Lys: "K", Met: "M", Phe: "F", Pro: "P", Ser: "S", Thr: "T", Trp: "W", Tyr: "Y", Val: "V" };
 
+  // The index is always revalidated; per-gene files carry the release version, so a new release
+  // never mixes with files a browser cached from the previous one.
   const cache = new Map();
-  function getJSON(url) {
+  let release = null;
+  function getJSON(url, opts) {
+    if (release && url.startsWith("data/") && url !== "data/index.json") url += `?v=${release}`;
     if (!cache.has(url)) {
-      cache.set(url, fetch(url).then(r => {
+      cache.set(url, fetch(url, opts).then(r => {
         if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`);
         return r.json();
       }).catch(e => { cache.delete(url); throw e; }));
     }
     return cache.get(url);
   }
-  const index = () => getJSON("data/index.json");
+  const index = () => getJSON("data/index.json", { cache: "no-cache" }).then(d => { release = d.summary.version; return d; });
 
   function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
   function evColor(i) { return cssVar(`--${EV_KEYS[i]}`); }

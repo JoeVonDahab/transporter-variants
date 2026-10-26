@@ -38,29 +38,30 @@ const TVMap = (() => {
   const T = { vs: Math.log10(350), s: Math.log10(18.7), m: Math.log10(4.33), p: Math.log10(2.08) };
   const METRICS = {
     patho: {
-      label: "Predicted pathogenicity",
+      label: "Predicted pathogenicity", short: "Pathogenicity",
       value: v => v.lr == null ? null : Math.max(-2.6, Math.min(2.6, Math.log10(v.lr))),
       stops: () => [[-T.vs, cssVar("--bs")], [-T.s, cssVar("--bm")], [-T.p, cssVar("--bp")], [0, cssVar("--ind")],
         [T.p, cssVar("--pp")], [T.m, cssVar("--pm")], [T.s, cssVar("--ps")], [T.vs, cssVar("--pvs")]],
       ends: ["benign", "pathogenic"],
-      describe: x => `likelihood ratio about ${fmtLR(10 ** x)} (${binName(x)})`,
+      describe: x => `${cap(binName(x))}, LR ${fmtLR(10 ** x)}`,
     },
     act: {
-      label: "Predicted activity",
+      label: "Predicted activity", short: "Activity",
       value: v => v.act,
       stops: () => [[0.2, cssVar("--act-lo")], [0.5, cssVar("--act-mid")], [0.8, cssVar("--act-hi")]],
-      ends: ["activity lost", "wild-type-like"],
-      describe: x => `predicted activity ${x.toFixed(2)} on a 0 (lost) to 1 (wild-type-like) scale`,
+      ends: ["activity lost", "normal activity"],
+      describe: x => `${x.toFixed(2)} (0 none, 1 normal)`,
     },
     mech: {
-      label: "Mechanism",
+      label: "Mechanism", short: "Mechanism",
       exploratory: true,
       value: v => v.mech == null ? null : Math.max(0, Math.min(1, v.mech)),
       stops: () => [[0.1, cssVar("--mech-expr")], [0.5, cssVar("--ind")], [0.9, cssVar("--mech-act")]],
       ends: ["expression-driven", "activity-specific"],
-      describe: x => `${x.toFixed(2)} probability of activity-specific loss (exploratory)`,
+      describe: x => `${x.toFixed(2)}, ${x >= 0.6 ? "leans activity-specific" : x <= 0.4 ? "leans expression-driven" : "unclear"}`,
     },
   };
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   function binName(x) {
     const lr = 10 ** x;
     if (lr >= 350) return EV_LABEL[0].toLowerCase();
@@ -237,6 +238,8 @@ const TVMap = (() => {
       this.tip = TV.el("div", { class: "tip", role: "status" });
       this.svgHost = TV.el("div");
       host.append(this.svgHost, this.tip);
+      // on small screens the map is wider than the page and scrolls sideways; say so
+      host.insertAdjacentElement("afterend", TV.el("p", { class: "swipe-hint" }, "Swipe sideways to see the whole protein."));
       this.bind();
     }
     setVariants(vs) {
@@ -448,7 +451,7 @@ const TVMap = (() => {
       const lines = [`<b>${seq[p - 1]}${p}</b>, ${esc(this.topo.regionOf[p])}`];
       for (const [k, m] of Object.entries(METRICS)) {
         const v = this.profiles[k].val[p];
-        if (!Number.isNaN(v) && (k === this.metric || k === "patho")) lines.push(`${m.label}${m.exploratory ? " (exploratory)" : ""}: ${m.describe(v)}`);
+        if (!Number.isNaN(v) && (k === this.metric || k === "patho")) lines.push(`${m.short}${m.exploratory ? " (exploratory)" : ""} nearby: ${m.describe(v)}`);
       }
       if (this.metric === "plddt" && this.plddt && this.plddt[p] != null) lines.push(`AlphaFold confidence (pLDDT) ${this.plddt[p].toFixed(0)}`);
       const feats = this.meta.features.filter(f => ["Binding site", "Active site", "Site", "Motif"].includes(f[0]) && f[1] <= p && p <= f[2]);
@@ -563,6 +566,12 @@ const TVMap = (() => {
       this.say("");
       const el = this.host.querySelector(".viewer");
       this.viewer = $3Dmol.createViewer(el, { backgroundColor: cssVar("--paper"), antialias: true, id: `mol-${this.meta.gene}` });
+      // Let the mouse wheel scroll the page until the visitor clicks the structure (or holds Ctrl),
+      // so nobody gets stuck zooming the model while scrolling past it.
+      this.active = false;
+      el.addEventListener("wheel", e => { if (!this.active && !e.ctrlKey) e.stopImmediatePropagation(); }, { capture: true });
+      el.addEventListener("pointerdown", () => { this.active = true; });
+      el.addEventListener("mouseleave", () => { this.active = false; });
       this.model = this.viewer.addModel(pdb, "pdb");
       this.ca = new Map();
       this.plddt = [];
