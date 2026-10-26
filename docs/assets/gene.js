@@ -19,12 +19,12 @@
 
   const TRACK = {
     native: {
-      name: "Native", license: "CC BY 4.0",
-      note: n => `Our model alone, for every variant. It contains no third-party predictions, so it can be reused for any purpose, including commercially, with attribution (CC BY 4.0).`,
+      name: "Our model only", file: "native", license: "CC BY 4.0",
+      note: n => `Scores from our model alone. Free for any use, including commercial, if you credit the source (CC BY 4.0).`,
     },
     routed: {
-      name: "Routed", license: "CC BY-NC-SA 4.0",
-      note: n => `Our model combined with AlphaMissense where AlphaMissense covers the variant (${fmt(n)} rows here), our model alone elsewhere. It inherits AlphaMissense's CC BY-NC-SA 4.0 licence: non-commercial use only, share-alike.`,
+      name: "With AlphaMissense", file: "routed", license: "CC BY-NC-SA 4.0",
+      note: n => `Our model combined with AlphaMissense for the ${fmt(n)} variants here that AlphaMissense covers, and our model alone for the rest. Non-commercial use only (CC BY-NC-SA 4.0).`,
     },
   };
 
@@ -68,14 +68,14 @@
         <div class="facts">
           <span><b>${fmt(r[4])}</b> ClinVar variants</span>
           <span><b>${fmt(r[5])}</b> missense</span>
-          <span><b>${fmt(m.length)}</b> residues${nTM ? `, <b>${nTM}</b> membrane helices` : ""}</span>
+          <span><b>${fmt(m.length)}</b> amino acids${nTM ? `, <b>${nTM}</b> membrane helices` : ""}</span>
           <span><b>${fmt(r[8])}</b> seen in training</span>
           <span><a href="https://www.ncbi.nlm.nih.gov/clinvar/?term=${encodeURIComponent(GENE)}%5Bgene%5D" rel="noopener">ClinVar</a>, <a href="https://alphafold.ebi.ac.uk/entry/${esc(m.uniprot)}" rel="noopener">AlphaFold DB</a></span>
         </div>
-        <div class="trackbar" role="group" aria-label="Prediction track">
+        <div class="trackbar" role="group" aria-label="Data version">
           <div class="seg" id="trackseg">
-            <button type="button" data-t="native">Native<small>CC BY 4.0</small></button>
-            <button type="button" data-t="routed">Routed<small>CC BY-NC-SA 4.0</small></button>
+            <button type="button" data-t="native">Our model only<small>CC BY 4.0</small></button>
+            <button type="button" data-t="routed">With AlphaMissense<small>non-commercial</small></button>
           </div>
           <p class="tnote" id="tnote"></p>
         </div>
@@ -86,7 +86,7 @@
       <section class="panel wrap" aria-labelledby="map-h">
         <div class="panel-head">
           <h2 id="map-h">Protein map</h2>
-          <p>The chain is drawn across the membrane using UniProt's topology and coloured by the average prediction for nearby ClinVar missense variants. Grey means no scored variant nearby. It summarises the variants that exist, not every possible substitution.</p>
+          <p>The protein chain drawn across the cell membrane. Red stretches are where ClinVar missense variants tend to be damaging, blue where they tend to be tolerated, and grey where there are too few variants to say. <a href="help.html#map">How to read the map</a></p>
         </div>
         <div class="mapbox">
           <div class="map-controls">
@@ -95,7 +95,7 @@
               <button type="button" data-m="patho">Pathogenicity</button>
               <button type="button" data-m="act">Activity</button>
               <button type="button" data-m="mech">Mechanism<span class="tag-exp">exploratory</span></button>
-              <button type="button" data-m="topo">Topology</button>
+              <button type="button" data-m="topo">Membrane topology</button>
               <button type="button" data-m="plddt">AlphaFold confidence</button>
             </div>
             <label class="check"><input type="checkbox" id="showv" checked> Show variants</label>
@@ -111,18 +111,18 @@
             <div class="mol" id="mol">
               <div class="viewer"></div>
               <div class="molmsg"></div>
-              <div class="molhint">Drag to rotate, scroll to zoom, click a residue to select it. Values here are averaged over residues within about 10 Å in space.</div>
+              <div class="molhint">Drag to rotate, scroll to zoom, click a residue to select it. Colours here are averaged over residues within about 10 Å of each other.</div>
             </div>
             <aside class="resinfo" id="resinfo" aria-live="polite"></aside>
           </div>
         </div>
-        <p class="small muted" id="mapnote" style="margin-top:8px">Drag across the map to zoom into a region; double-click or use “Show whole protein” to return.</p>
+        <p class="small muted" id="mapnote" style="margin-top:8px">Drag across the map to zoom in. Double-click it, or press “Show whole protein”, to zoom out.</p>
       </section>
 
       <section class="panel wrap" aria-labelledby="tab-h" style="margin-bottom:70px">
         <div class="panel-head">
           <h2 id="tab-h">Variants</h2>
-          <p>Read <b>evidence</b>, the ACMG strength from the likelihood ratio. The raw score is shown for completeness only: a 0.5 cut-off over-calls, because the training set was 45% pathogenic.</p>
+          <p>Use the evidence level when classifying a variant. The raw score is there for reference; a cut-off of 0.5 on it calls too many variants pathogenic (<a href="help.html#score">why</a>). Click a row for details.</p>
         </div>
         <div class="filters" id="filters"></div>
         <div class="tablewrap"><table class="vt" id="vt"></table></div>
@@ -204,9 +204,9 @@
     app.querySelector("#legend").innerHTML = TVMap.legendRamp(m);
     const note = app.querySelector("#metricnote");
     if (m === "mech") {
-      note.innerHTML = `<div class="notice" style="margin:12px 14px 0"><b>Exploratory.</b> Mechanism asks whether loss of function is activity-specific (the protein arrives but cannot work) or expression-driven (it never arrives). It is written only for confidently pathogenic variants. It transfers across proteins in aggregate, at AUC 0.78, but its per-variant calls on genes with no measurements are unproven: on SLC19A2 and SLC19A3, two independent models agreed at Spearman 0.009, where they agree at 0.536 on proteins with known answers. Use it to choose experiments, not to classify a variant.</div>`;
+      note.innerHTML = `<div class="notice" style="margin:12px 14px 0"><b>Exploratory.</b> Mechanism estimates whether a damaging variant stops the protein working once it is in place (activity-specific, near 1) or stops it getting there at all (expression-driven, near 0). It is only given for confident pathogenic calls. On genes without lab data, single predictions are unreliable: on SLC19A2 and SLC19A3 two independent models gave almost unrelated answers. Use it to choose variants to test in the lab. <a href="help.html#activity">More</a></div>`;
     } else if (m === "act") {
-      note.innerHTML = `<div class="notice" style="margin:12px 14px 0;background:var(--sunk)">Activity is a graded estimate of transport or enzymatic function for missense variants, on the rank scale of deep mutational scans. On held-out proteins it reaches Spearman 0.50 alone. It is not a call.</div>`;
+      note.innerHTML = `<div class="notice" style="margin:12px 14px 0;background:var(--sunk)">Activity is a rough estimate of how much transport or enzyme activity the protein keeps with each missense change, from 0 (none) to 1 (normal). <a href="help.html#activity">More</a></div>`;
     } else note.innerHTML = "";
     renderResInfo();
   }
@@ -224,12 +224,12 @@
   function mapNotes() {
     const m = S.meta, notes = [];
     const topo = S.wave.topo;
-    if (!topo.hasTM) notes.push(topo.annotated ? "UniProt annotates no membrane-spanning helix for this protein, so the chain is drawn on one side." : "UniProt gives no membrane topology for this protein, so the chain is drawn as a line without a membrane.");
-    else if (topo.inferred) notes.push("Some loop orientations are not annotated in UniProt and were inferred by alternating sides across each helix.");
-    if (m.uniprot_sequence_matches === false) notes.push("UniProt has revised this sequence since the model was run, so its feature annotations are not drawn.");
+    if (!topo.hasTM) notes.push(topo.annotated ? "UniProt lists no membrane-crossing helix for this protein, so the chain is drawn on one side." : "UniProt has no membrane topology for this protein, so the chain is drawn as a plain line.");
+    else if (topo.inferred) notes.push("UniProt does not say which side some loops are on. They are drawn alternating across each helix.");
+    if (m.uniprot_sequence_matches === false) notes.push("UniProt has updated this sequence since the model was run, so its domains and sites are not drawn.");
     const nCls = S.rows.filter(o => o.cls).length;
-    if (nCls) notes.push(`${fmt(nCls)} missense variant${nCls > 1 ? "s" : ""} could not be placed on this sequence (a multi-nucleotide change, or a residue numbered on a different transcript). ${nCls > 1 ? "They carry" : "It carries"} a class-level score only and ${nCls > 1 ? "are" : "is"} left off the map; see the “Class-level score” flag in the table.`);
-    notes.push("Drag across the map to zoom into a region; double-click or use “Show whole protein” to return.");
+    if (nCls) notes.push(`${fmt(nCls)} missense variant${nCls > 1 ? "s" : ""} could not be placed on this sequence, so ${nCls > 1 ? "they are" : "it is"} not on the map. ${nCls > 1 ? "They have" : "It has"} a class-level score only; look for the “Class-level score” flag in the table.`);
+    notes.push("Drag across the map to zoom in. Double-click it, or press “Show whole protein”, to zoom out.");
     app.querySelector("#mapnote").textContent = notes.join(" ");
   }
 
@@ -247,12 +247,12 @@
       const hot = TVMap.hotspots(S.meta.length, prof, S.wave.topo, 5, 18, 1.0, true).filter(h => h.v >= Math.log10(4.33));
       const cool = TVMap.hotspots(S.meta.length, prof, S.wave.topo, 3, 18, 1.0, false).filter(h => h.v <= -Math.log10(4.33));
       box.innerHTML = S.placed.length ? `
-        <h3>Where the damaging variants concentrate</h3>
-        <p class="empty small">Regions where the predictions for nearby missense variants are most pathogenic, from the ${S.track} track. Click one to inspect it.</p>
-        ${hot.length ? regionList(hot) : `<p class="small muted">No region reaches moderate pathogenic evidence on average.</p>`}
-        ${cool.length ? `<h3 style="margin-top:18px">Most tolerant regions</h3>${regionList(cool)}` : ""}
-        <p class="small muted" style="margin-top:14px">These follow where ClinVar variants have been reported. A region with few reported variants can be critical and still show as grey.</p>`
-        : `<h3>No missense variants to map</h3><p class="empty">This gene has no ClinVar missense variant that can be placed on its sequence. The table below lists every variant.</p>`;
+        <h3>Regions with the most damaging predictions</h3>
+        <p class="empty small">Based on ${S.track === "routed" ? "the With AlphaMissense version" : "our model"}. Click a region to see its variants.</p>
+        ${hot.length ? regionList(hot) : `<p class="small muted">No region averages moderate pathogenic evidence or stronger.</p>`}
+        ${cool.length ? `<h3 style="margin-top:18px">Regions where changes are tolerated</h3>${regionList(cool)}` : ""}
+        <p class="small muted" style="margin-top:14px">These regions reflect where ClinVar variants have been reported. A part of the protein with few reported variants can still be important.</p>`
+        : `<h3>No missense variants to map</h3><p class="empty">None of this gene's ClinVar missense variants could be placed on its sequence. Every variant is still listed in the table below.</p>`;
       box.querySelectorAll("li[data-pos]").forEach(li => li.addEventListener("click", () =>
         selectPos(Number(li.dataset.pos), [Number(li.dataset.a), Number(li.dataset.b)])));
       return;
@@ -318,16 +318,16 @@
     const consKeys = [...consC.keys()].sort((a, b) => consC.get(b) - consC.get(a));
     const nTrain = S.rows.filter(o => o.train).length;
     box.innerHTML = `
-      <div class="row"><span class="lbl">Consequence</span><div class="chips">${consKeys.map(k =>
+      <div class="row"><span class="lbl">Variant type</span><div class="chips">${consKeys.map(k =>
         `<button type="button" class="chip" data-cons="${k}" aria-pressed="${S.cons.has(k)}">${esc(CONS_LABEL[S.idx.cons[k]])}<span class="ct">${fmt(consC.get(k))}</span></button>`).join("")}</div></div>
-      <div class="row"><span class="lbl">Evidence</span><div class="chips">${evC.map((c, i) => c ?
+      <div class="row"><span class="lbl">Evidence level</span><div class="chips">${evC.map((c, i) => c ?
         `<button type="button" class="chip" data-ev="${i}" aria-pressed="${S.ev.has(i)}"><span class="dot" style="--c:var(--${TV.EV_KEYS[i]})"></span>${EV_LABEL[i]}<span class="ct">${fmt(c)}</span></button>` : "").join("")}</div></div>
       <div class="row">
         <span class="lbl">Find</span>
-        <input type="search" id="tq" placeholder="c.68G>C, p.Gly111Arg, G111R or rs…" value="${esc(S.text)}" aria-label="Filter variants by HGVS, protein change or rsID">
-        <label class="check"><input type="checkbox" id="extrain" ${S.excludeTraining ? "checked" : ""}> Exclude the ${fmt(nTrain)} variants seen in training</label>
+        <input type="search" id="tq" placeholder="Find in this gene: c.515G>A, p.Gly172Asp, rs…" value="${esc(S.text)}" aria-label="Filter variants by HGVS, protein change or rsID">
+        <label class="check"><input type="checkbox" id="extrain" ${S.excludeTraining ? "checked" : ""}> Hide the ${fmt(nTrain)} variants seen in training</label>
         ${S.pos ? `<span class="active-filter">${S.range ? `Residues ${esc(S.meta.sequence[S.range[0] - 1])}${S.range[0]}–${esc(S.meta.sequence[S.range[1] - 1])}${S.range[1]}` : `Residue ${esc((S.meta.sequence || "")[S.pos - 1] || "")}${S.pos}`}<button type="button" id="xpos" aria-label="Clear residue filter">×</button></span>` : ""}
-        <button type="button" class="btn ghost" id="dlgene" style="margin-left:auto">Download ${esc(GENE)}, ${TRACK[S.track].name.toLowerCase()} track (${TRACK[S.track].license})</button>
+        <button type="button" class="btn ghost" id="dlgene" style="margin-left:auto">Download this gene (CSV, ${TRACK[S.track].license})</button>
       </div>`;
     box.querySelectorAll("[data-cons]").forEach(b => b.addEventListener("click", () => {
       const k = Number(b.dataset.cons); S.cons.has(k) ? S.cons.delete(k) : S.cons.add(k); S.page = 0; renderFilters(); renderTable();
@@ -357,14 +357,14 @@
       return `<th class="${cls}" ${dir ? `aria-sort="${dir === "asc" ? "ascending" : "descending"}"` : ""}><button type="button" data-sort="${k}" ${dir ? `data-dir="${dir}"` : ""}>${label}</button>${sub ? `<span class="sub">${sub}</span>` : ""}</th>`;
     };
     return `<thead><tr>
-      ${th("hgvs", "Variant", routed ? "HGVS, rsID, flags" : "HGVS, rsID, training flag")}
-      ${th("cons", "Consequence")}
-      ${th("ev", "Evidence", "ACMG strength, read this")}
+      ${th("hgvs", "Variant", "HGVS, rsID and flags")}
+      ${th("cons", "Type")}
+      ${th("ev", "Evidence level", "use this")}
       ${th("lr", "LR", "likelihood ratio", "num")}
-      ${th("score", "Raw score", "do not threshold at 0.5", "num")}
-      ${th("act", "Activity", "0 lost, 1 wild-type-like", "num")}
-      ${th("mech", "Mechanism", "exploratory, P(activity-specific)", "num")}
-      ${th("clin", "ClinVar assertion", "reference only")}
+      ${th("score", "Raw score", "for reference", "num")}
+      ${th("act", "Activity", "0 none, 1 normal", "num")}
+      ${th("mech", "Mechanism", "exploratory", "num")}
+      ${th("clin", "ClinVar", "classification")}
     </tr></thead>`;
   }
 
@@ -383,14 +383,14 @@
   function detail(o) {
     const routed = S.track === "routed";
     const pred = [
-      `<dt>Track</dt><dd>${routed ? (o.plus ? "Routed: our model with AlphaMissense" : "Routed: native score (no AlphaMissense here)") : "Native: our model alone"}</dd>`,
+      `<dt>Version</dt><dd>${routed ? (o.plus ? "With AlphaMissense: our model combined with AlphaMissense" : "With AlphaMissense: our model alone (AlphaMissense does not cover this variant)") : "Our model only"}</dd>`,
       `<dt>Evidence</dt><dd>${evChip(o.ev, true)}</dd>`,
       `<dt>Likelihood ratio</dt><dd>${fmtLR(o.lr)}</dd>`,
       `<dt>Raw score</dt><dd>${o.score ?? ""}</dd>`,
     ];
     if (routed) {
       pred.push(`<dt>Our model alone</dt><dd>${o.v2n ?? ""}</dd>`);
-      pred.push(`<dt>Our model with AlphaMissense</dt><dd>${o.v2p ?? ""}${o.hasAM ? "" : ` <span class="badge noam">imputed AlphaMissense, do not use</span>`}</dd>`);
+      pred.push(`<dt>Our model with AlphaMissense</dt><dd>${o.v2p ?? ""}${o.hasAM ? "" : ` <span class="badge noam">not meaningful here</span>`}</dd>`);
       pred.push(`<dt>AlphaMissense</dt><dd>${o.am ?? "not covered"}</dd>`);
     }
     const lay = [];
@@ -398,10 +398,12 @@
     if (o.mech != null) lay.push(`<dt>Mechanism <span class="tag-exp">exploratory</span></dt><dd>${o.mclip.toFixed(2)}, ${mechWord(o.mclip)}${o.mech !== o.mclip ? ` (model output ${o.mech.toFixed(3)}, shown clipped to the 0 to 1 range)` : ""}</dd>`);
     if (o.lis && lay.length) lay.push(`<dt>In-sample</dt><dd>This protein's deep mutational scan trained these layers.</dd>`);
     const notes = [];
-    if (o.cls) notes.push("<b>Class-level score.</b> ClinVar's protein change could not be placed on the UniProt sequence used by the model (a multi-nucleotide change, or a residue numbered on a different transcript), so this missense variant was scored by the consequence-class model rather than the protein-level one. It carries no activity or mechanism value, and its evidence reflects missense variants in general, not this substitution.");
-    if (o.train) notes.push("<b>Seen in training.</b> The model was fitted on this variant's ClinVar label, so its prediction is not an independent test. Leave it out of any accuracy estimate.");
-    if (routed && !o.hasAM) notes.push("AlphaMissense does not cover this variant, so the routed track serves the native score. The “with AlphaMissense” value imputes AlphaMissense and is not meaningful here.");
-    if (o.mech != null) notes.push("Mechanism is a hypothesis generator. Its per-variant reliability on genes without measurements is unproven.");
+    if (o.cls) notes.push("<b>Class-level score.</b> This missense change could not be placed on the UniProt sequence the model uses. It changes more than one DNA base, or ClinVar numbers it on a different transcript. It was scored by a simpler model that only knows the variant is missense, so its evidence is weak and it has no activity or mechanism value.");
+    if (o.ev === 0) notes.push('<b>Count this as strong.</b> On genes held out from calibration, variants at this level were 99.2% pathogenic, which is the strength of the strong level. <a href="help.html#levels">Details</a>');
+    if (o.ev === 4) notes.push('<b>Indeterminate is not neutral here.</b> On held-out genes, 76% of variants at this level were pathogenic. <a href="help.html#levels">Details</a>');
+    if (o.train) notes.push("<b>Seen in training.</b> The model was trained on this variant's ClinVar classification, so this prediction is not an independent test. Leave it out of any accuracy estimate.");
+    if (routed && !o.hasAM) notes.push("AlphaMissense does not cover this variant, so the score shown is our model's alone. Ignore the “combined with AlphaMissense” value for this row.");
+    if (o.mech != null) notes.push("Mechanism is exploratory. Single predictions on genes without lab data are unreliable.");
     return `<div class="det-grid">
       <div><h4>Identifiers</h4><dl>
         <dt>HGVS</dt><dd class="mono">${esc(o.hgvs)}</dd>
@@ -442,7 +444,7 @@
       </tr>${open ? `<tr class="det"><td colspan="8">${detail(o)}</td></tr>` : ""}`;
     }).join("");
     const t = app.querySelector("#vt");
-    t.innerHTML = head() + `<tbody>${body || `<tr><td colspan="8" style="padding:28px 12px" class="muted">No variant matches these filters. Clear a filter above to see more.</td></tr>`}</tbody>` +
+    t.innerHTML = head() + `<tbody>${body || `<tr><td colspan="8" style="padding:28px 12px" class="muted">No variants match these filters. Clear a filter above to see more.</td></tr>`}</tbody>` +
       (tx ? `<caption class="visually-hidden">Variants in ${esc(GENE)}; HGVS shown relative to ${esc(tx)}</caption>` : "");
     t.querySelectorAll("button[data-sort]").forEach(b => b.addEventListener("click", e => {
       e.stopPropagation();

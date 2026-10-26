@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How to use | Transporter Variants</title>
+<meta name="description" content="What the evidence levels, flags, protein maps and data versions mean, how accurate the predictions are, and their limitations.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Spectral:ital,wght@0,500;0,600;1,500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="index.html" aria-label="Transporter Variants, home">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="0" y="9.5" width="26" height="7" rx="1" fill="var(--lipid)" opacity=".75"/><path d="M2.5 4c4 0 4 18 8 18s4-18 8-18 4 18 5 18" fill="none" stroke="var(--ps)" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <span>Transporter Variants</span>
+    </a>
+    <div class="search" data-search>
+      <svg class="glass" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <label class="visually-hidden" for="q-top">Search by gene, rsID or HGVS</label>
+      <input id="q-top" type="search" autocomplete="off" spellcheck="false" placeholder="Gene, rsID or HGVS">
+    </div>
+    <nav aria-label="Main">
+      <a href="index.html#genes">Genes</a>
+      <a href="help.html" aria-current="page">How to use</a>
+      <a href="download.html">Download and cite</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap docs">
+  <nav class="toc" aria-label="On this page">
+    <p class="toc-h">On this page</p>
+    <ol>
+      <li><a href="#levels">Evidence levels</a></li>
+      <li><a href="#score">The raw score</a></li>
+      <li><a href="#versions">Two versions of the data</a></li>
+      <li><a href="#flags">Flags</a></li>
+      <li><a href="#map">Protein map</a></li>
+      <li><a href="#activity">Activity and mechanism</a></li>
+      <li><a href="#acmg">Using this with ACMG/AMP</a></li>
+      <li><a href="#accuracy">Accuracy and coverage</a></li>
+      <li><a href="#limits">Limitations</a></li>
+      <li><a href="#columns">Columns in the files</a></li>
+      <li><a href="#search">Searching</a></li>
+    </ol>
+  </nav>
+
+  <article class="doc">
+    <h1>How to use these predictions</h1>
+    <p class="lede-sm">This page explains what each number and label means, how well the predictions hold up, and where they fall short.</p>
+
+    <section id="levels">
+      <h2>Evidence levels</h2>
+      <p>Every variant is placed in one of eight evidence levels, from <i>Benign strong</i> to <i>Pathogenic very strong</i>. The level comes from a likelihood ratio: how much more often a score like this one turns up among pathogenic variants than among benign ones.</p>
+      <p>Likelihood ratios were grouped with the odds thresholds from Tavtigian et al. (2018): 2.08 for supporting, 4.33 for moderate, 18.7 for strong and 350 for very strong, with the inverse values on the benign side. ClinGen uses the same thresholds for functional assay evidence (Brnich et al. 2019).</p>
+      <p>To test the levels, we set them using half of the genes and checked them on the other half. The table shows, for the labelled variants in the test genes, how many in each level were pathogenic.</p>
+      <div class="xscroll"><table class="cal" id="caltable"></table></div>
+      <div class="callout">
+        <p><b>Two levels did not match their label in this test.</b> Variants called <i>Pathogenic very strong</i> were 99.2% pathogenic. That is very good, but it is the strength of the strong level, so treat a very strong call as strong. Variants called <i>Indeterminate</i> were 76% pathogenic, which is weak evidence toward pathogenic, so do not read indeterminate as neutral. Only 247 variants were tested in that level.</p>
+      </div>
+      <p><b>A note on method.</b> ClinGen's recommended way to calibrate prediction tools (Pejaver et al. 2022) assumes that 4.4% of rare missense variants are pathogenic and uses stricter cut-offs, set at the lower end of a confidence interval. These levels were not made with that method. Please do not report them as ClinGen-calibrated PP3 or BP4 codes.</p>
+    </section>
+
+    <section id="score">
+      <h2>The raw score</h2>
+      <p>The raw score runs from 0 to 1. It comes from a model trained on a set of variants that was 45% pathogenic. Most variants in a gene panel are benign, so a cut-off of 0.5 calls far too many of them pathogenic.</p>
+      <p>Use the evidence level when classifying a variant. The raw score is on the gene pages and in the files for reference and for reporting.</p>
+    </section>
+
+    <section id="versions">
+      <h2>Two versions of the data</h2>
+      <p>The data come in two versions. They differ in whether AlphaMissense was used, and in how you may reuse them. Use the switch at the top of a gene page to move between them.</p>
+      <dl class="deflist">
+        <dt>Our model only <span class="muted">(files named <code>native</code>)</span></dt>
+        <dd>Every variant, scored by our model alone, with no third-party predictions. Licence CC BY 4.0: you can use it for anything, including commercial work, as long as you credit it.</dd>
+        <dt>With AlphaMissense <span class="muted">(files named <code>routed</code>)</span></dt>
+        <dd>For the <span class="n-am">177,464</span> missense variants that AlphaMissense covers, our model is combined with AlphaMissense. All other variants keep our model's score. This version is more accurate on missense variants. Because AlphaMissense is licensed CC BY-NC-SA 4.0, this version carries the same licence: non-commercial use only, and anything you build from it must be shared under the same terms.</dd>
+      </dl>
+      <p>If you reuse the data, keep the two versions in separate files so the licences stay clear.</p>
+    </section>
+
+    <section id="flags">
+      <h2>Flags</h2>
+      <p>Some rows in the gene tables carry a flag under the variant name.</p>
+      <dl class="deflist">
+        <dt><span class="badge train">Seen in training</span></dt>
+        <dd>The model was trained on this variant's ClinVar classification, so its prediction is not an independent test. Leave these <span class="n-train">147,162</span> variants out of any accuracy estimate. You can hide them with the checkbox above each table.</dd>
+        <dt><span class="badge noam">Class-level score</span></dt>
+        <dd>We could not place this missense change on the UniProt protein sequence, usually because it changes more than one DNA base or because ClinVar numbers it on a different transcript. It was scored by a simpler model that only knows the variant is missense. Its evidence is weak, and it has no activity or mechanism value. This applies to <span class="n-cls">2,852</span> variants.</dd>
+        <dt><span class="badge am">AlphaMissense</span> or <span class="badge noam">No AlphaMissense</span></dt>
+        <dd>Shown in the With AlphaMissense version. It tells you whether AlphaMissense covers the variant. Where it does not, the score is our model's alone. In the download file, ignore the <code>v2_plus</code> column for these rows.</dd>
+        <dt><span class="badge lis">Layers in-sample</span></dt>
+        <dd>This protein has a deep mutational scan that was used to train the activity and mechanism predictions, so those two values are not independent for it.</dd>
+      </dl>
+    </section>
+
+    <section id="map">
+      <h2>Protein map</h2>
+      <p>The line is the protein chain, from the first amino acid on the left to the last on the right. Where UniProt marks a helix that crosses the membrane, the chain crosses the yellow band. Loops above the band are outside the cell, and loops below it are in the cytoplasm.</p>
+      <p>The colour at each position is the average prediction for ClinVar missense variants at and near that position. Red means variants there tend to be damaging. Blue means they tend to be tolerated. Grey means there are too few variants nearby to say. Only variants reported in ClinVar are counted, so a grey stretch is not necessarily unimportant.</p>
+      <p>The 3D view shows the AlphaFold model of the protein, coloured the same way but averaged over residues that are close together in space. Dots on the map and spheres in 3D are individual ClinVar variants, coloured by evidence level.</p>
+      <p>Drag across the map to zoom into a region. Click a position, or a region in the list beside the 3D view, to show only those variants in the table.</p>
+    </section>
+
+    <section id="activity">
+      <h2>Activity and mechanism</h2>
+      <p><b>Predicted activity</b> estimates how much of its normal transport or enzyme activity the protein keeps with a given missense change, from 0 (none) to 1 (normal). It was trained on deep mutational scans of 14 proteins. On proteins it had not seen, it agreed with measured activity at a Spearman correlation of 0.50, so treat it as a rough estimate.</p>
+      <p><b>Mechanism is exploratory.</b> It is given only for variants with a confident pathogenic call. It estimates whether the protein reaches its place in the cell but fails to work (activity-specific, values near 1), or never gets there (expression-driven, values near 0). Across proteins it separates the two with an AUC of 0.78. But on SLC19A2 and SLC19A3, two independent models gave almost unrelated answers (Spearman correlation 0.009), so a single prediction on a gene without lab data is unreliable. It can help you decide which variants to test in the lab. It should not be used to classify a variant. A few values fall just outside 0 to 1; the site shows them as 0 or 1.</p>
+    </section>
+
+    <section id="acmg">
+      <h2>Using this with ACMG/AMP</h2>
+      <ul class="plain">
+        <li>Use one prediction tool for PP3 and BP4. If you use these predictions, do not also apply AlphaMissense, REVEL or another predictor to the same variant. The With AlphaMissense version already includes AlphaMissense.</li>
+        <li>Pejaver et al. (2022) recommend that PP3 and PM1 together count for no more than strong evidence, because both draw on conservation and protein structure.</li>
+        <li>Count a <i>Pathogenic very strong</i> call as strong, for the reason given under <a href="#levels">Evidence levels</a>.</li>
+        <li>When you report a call, note the release number, which version of the data you used, and the raw score.</li>
+      </ul>
+    </section>
+
+    <section id="accuracy">
+      <h2>Accuracy and coverage</h2>
+      <p>We tested the predictions on 7,039 labelled variants that were not used in training, across all 13 variant types.</p>
+      <table class="cal">
+        <thead><tr><th>Method</th><th class="n">AUC</th></tr></thead>
+        <tbody>
+          <tr><td><b>This resource, combined with CADD</b></td><td class="n"><b>0.9853</b></td></tr>
+          <tr><td>This resource alone</td><td class="n">0.9851</td></tr>
+          <tr><td>Variant type alone (a lookup table)</td><td class="n">0.9588</td></tr>
+          <tr><td>CADD</td><td class="n">0.9519</td></tr>
+        </tbody>
+      </table>
+      <p class="small muted">Knowing only whether a variant is a frameshift, a synonymous change and so on already gives an AUC of 0.9588, because variant type says a lot about pathogenicity. That lookup table is the baseline to beat.</p>
+
+      <p style="margin-top:28px">On the 1,998 missense variants in that set that AlphaMissense can also score:</p>
+      <table class="cal">
+        <thead><tr><th>Method</th><th class="n">AUC</th></tr></thead>
+        <tbody>
+          <tr><td><b>With AlphaMissense version</b></td><td class="n"><b>0.9538</b></td></tr>
+          <tr><td>AlphaMissense alone</td><td class="n">0.9455</td></tr>
+          <tr><td>Our model only version</td><td class="n">0.9163</td></tr>
+        </tbody>
+      </table>
+      <p class="small muted">On missense variants, our model on its own is less accurate than AlphaMissense. Combined with AlphaMissense, it is more accurate than either (DeLong test, p = 0.016).</p>
+
+      <h3 style="margin-top:34px">Which variants AlphaMissense covers</h3>
+      <p>AlphaMissense only scores missense variants. Here it covers <span class="n-am">177,464</span> of them. The other variants, about half of all ClinVar entries in these genes, have no AlphaMissense score; this resource scores all of them.</p>
+      <div class="cov" id="cov"></div>
+      <p class="cov-note"><i></i> Hatched part: covered by AlphaMissense</p>
+    </section>
+
+    <section id="limits">
+      <h2>Limitations</h2>
+      <ul class="plain">
+        <li>ClinVar classifications are partly based on computational predictions, so some circularity in the accuracy figures cannot be ruled out. The results within a single variant type are the safer reading.</li>
+        <li>Two evidence levels did not perform as labelled on held-out genes; see <a href="#levels">Evidence levels</a>.</li>
+        <li>The evidence levels were not made with ClinGen's PP3/BP4 calibration method.</li>
+        <li><span class="n-cls">2,852</span> missense variants have only a class-level score.</li>
+        <li>Only variants in ClinVar are scored. Other possible changes at the same position are not.</li>
+        <li>Mechanism predictions are exploratory.</li>
+        <li>These are research predictions. They are not a clinical classification.</li>
+      </ul>
+    </section>
+
+    <section id="columns">
+      <h2>Columns in the files</h2>
+      <table class="coltable">
+        <tbody>
+          <tr><td>gene, family</td><td class="which">both</td><td>Gene symbol and transporter family</td></tr>
+          <tr><td>variation_id, rsid, hgvs</td><td class="which">both</td><td>ClinVar variation ID, dbSNP ID (−1 if none) and the HGVS name ClinVar gives</td></tr>
+          <tr><td>consequence, protein_variant</td><td class="which">both</td><td>Variant type, and the amino-acid change where there is one</td></tr>
+          <tr><td>clinsig, review_status</td><td class="which">both</td><td>ClinVar's classification and review status when the data were downloaded, for reference</td></tr>
+          <tr><td>in_training</td><td class="which">both</td><td>TRUE if the model was trained on this variant. Leave these rows out of any accuracy estimate.</td></tr>
+          <tr><td>track</td><td class="which">both</td><td><code>plus</code> where AlphaMissense was used, otherwise <code>native</code></td></tr>
+          <tr><td>has_alphamissense</td><td class="which">both</td><td>Whether AlphaMissense covers the variant</td></tr>
+          <tr><td>score</td><td class="which">both</td><td>Raw score from 0 to 1. Do not use 0.5 as a cut-off.</td></tr>
+          <tr><td>lr</td><td class="which">both</td><td>Likelihood ratio for the score</td></tr>
+          <tr><td>evidence</td><td class="which">both</td><td>Evidence level from the likelihood ratio. Use this column.</td></tr>
+          <tr><td>v2_native</td><td class="which">both</td><td>Our model's score alone</td></tr>
+          <tr><td>v2_plus</td><td class="which">With AlphaMissense</td><td>Our model combined with AlphaMissense. Only meaningful where <code>has_alphamissense</code> is TRUE.</td></tr>
+          <tr><td>alphamissense</td><td class="which">With AlphaMissense</td><td>AlphaMissense score, where there is one</td></tr>
+          <tr><td>activity_pred</td><td class="which">both</td><td>Predicted activity for missense variants, from 0 (none) to 1 (normal)</td></tr>
+          <tr><td>mechanism_pred</td><td class="which">both</td><td>Exploratory. For confident pathogenic calls only: near 1 means activity-specific, near 0 means expression-driven.</td></tr>
+          <tr><td>layers_in_sample</td><td class="which">both</td><td>TRUE if this protein's deep mutational scan trained the activity and mechanism predictions</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="search">
+      <h2>Searching</h2>
+      <p>The search box accepts a gene symbol (SLC19A2), part of a protein name (thiamine), an rsID (rs113993960), a ClinVar variation ID (5957), or an HGVS name, written either as <code>NM_006996.3:c.515G&gt;A</code> or as <code>SLC19A2 p.Gly172Asp</code>.</p>
+    </section>
+  </article>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <p>Youssef Abo-Dahab, Joanne Chun and Kathleen M. Giacomini, University of California, San Francisco. Contact: <a href="mailto:youssef.nageh@gmail.com">youssef.nageh@gmail.com</a>.</p>
+      <p>These are research predictions. They are not a clinical classification.</p>
+    </div>
+    <div><p><a href="download.html">Download and cite</a><br><a href="https://github.com/JoeVonDahab/transporter-variants">Source code on GitHub</a></p></div>
+  </div>
+</footer>
+
+<script src="assets/common.js"></script>
+<script src="assets/docs.js"></script>
+</body>
+</html>

@@ -63,6 +63,14 @@ const TV = (() => {
     return null;
   }
 
+  // release number and date in footers and citations
+  function fillRelease(S) {
+    const M = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    const [y, m, d] = String(S.released).split("-").map(Number);
+    document.querySelectorAll(".relver").forEach(e => { e.textContent = S.version; });
+    if (y && m && d) document.querySelectorAll(".reldate").forEach(e => { e.textContent = `${d} ${M[m - 1]} ${y}`; });
+  }
+
   const geneUrl = (g, q, extra = "") => `gene.html?g=${encodeURIComponent(g)}${q ? `&q=${encodeURIComponent(q)}` : ""}${extra}`;
 
   /* ---------- search ----------
@@ -153,7 +161,7 @@ const TV = (() => {
       for (const g of suggestions(idx, q)) {
         rows.push(`<li role="option" data-href="${geneUrl(g[0])}"><span class="sym">${esc(g[0])}</span><span class="nm">${esc(g[3])}</span><span class="hint">${fmt(g[4])} variants</span></li>`);
       }
-      if (!rows.length) rows.push(`<li class="msg">No gene matches “${esc(q)}”. Try a gene symbol, an rsID such as rs1057519, a ClinVar variation ID, or an HGVS expression.</li>`);
+      if (!rows.length) rows.push(`<li class="msg">No gene matches “${esc(q)}”. Try a gene symbol, an rsID such as rs113993960, a ClinVar variation ID, or an HGVS name.</li>`);
       show(rows.join(""));
     }
     async function go(useSel) {
@@ -193,5 +201,5 @@ const TV = (() => {
     document.querySelectorAll("[data-search]").forEach(attachSearch);
   });
 
-  return { EV_KEYS, EV_LABEL, CONS_LABEL, getJSON, index, cssVar, evColor, evVar, fmt, fmtLR, esc, el, evChip, proteinKey, geneUrl };
+  return { EV_KEYS, EV_LABEL, CONS_LABEL, getJSON, index, cssVar, evColor, evVar, fmt, fmtLR, esc, el, evChip, proteinKey, geneUrl, fillRelease };
 })();

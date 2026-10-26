@@ -455,7 +455,7 @@ const TVMap = (() => {
       for (const f of feats) lines.push(`${esc(f[0])}: ${esc(f[3])}`);
       const vs = this.byPos.get(p);
       if (vs) lines.push(vs.slice(0, 4).map(v => `${esc(v.pv)} ${EV_LABEL[v.ev].toLowerCase()}`).join("<br>") + (vs.length > 4 ? `<br>and ${vs.length - 4} more` : ""));
-      else if (Number.isNaN(this.profiles.patho.val[p])) lines.push("No scored missense variant nearby");
+      else if (Number.isNaN(this.profiles.patho.val[p])) lines.push("Too few variants nearby to say");
       return lines.join("<br>");
     }
     bind() {
@@ -648,7 +648,7 @@ const TVMap = (() => {
     const m = METRICS[metric], st = m.stops();
     const lo = st[0][0], hi = st[st.length - 1][0];
     const g = st.map(([x, c]) => `${c} ${((x - lo) / (hi - lo) * 100).toFixed(0)}%`).join(",");
-    return `<span class="scale">${esc(m.ends[0])} <span class="ramp" style="background:linear-gradient(90deg,${g})"></span> ${esc(m.ends[1])}</span><span class="scale"><span class="ramp" style="width:26px;background:var(--rule)"></span> no scored variant nearby</span>`;
+    return `<span class="scale">${esc(m.ends[0])} <span class="ramp" style="background:linear-gradient(90deg,${g})"></span> ${esc(m.ends[1])}</span><span class="scale"><span class="ramp" style="width:26px;background:var(--rule)"></span> too few variants nearby</span>`;
   }
 
   return { Wave, Mol, METRICS, topology, hotspots, legendRamp, binName, spaceProfile };

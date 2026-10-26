@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Transporter Variants</title>
-<meta name="description" content="Calibrated ACMG evidence for all 349,056 ClinVar variants in 783 human transporter, ion-channel, ABC-transporter and ATPase genes, with protein maps, search and bulk downloads.">
+<meta name="description" content="Pathogenicity predictions and ACMG/AMP evidence levels for 349,056 ClinVar variants in 783 human transporter and ion-channel genes. Search by gene, rsID or HGVS, view protein maps, and download the data.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -18,11 +18,10 @@
       <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="0" y="9.5" width="26" height="7" rx="1" fill="var(--lipid)" opacity=".75"/><path d="M2.5 4c4 0 4 18 8 18s4-18 8-18 4 18 5 18" fill="none" stroke="var(--ps)" stroke-width="2.2" stroke-linecap="round"/></svg>
       <span>Transporter Variants</span>
     </a>
-    <nav aria-label="Sections">
-      <a href="#evidence">Evidence</a>
-      <a href="#browse">Genes</a>
-      <a href="#download">Download</a>
-      <a href="#cite">Cite</a>
+    <nav aria-label="Main">
+      <a href="#genes">Genes</a>
+      <a href="help.html">How to use</a>
+      <a href="download.html">Download and cite</a>
     </nav>
   </div>
 </header>
@@ -31,163 +30,48 @@
   <section class="hero">
     <div class="wrap">
       <div class="hero-grid">
-        <h1>Calibrated evidence for every ClinVar variant in 783 transporter and ion-channel genes</h1>
+        <h1>Variant effect predictions for 783 transporter and ion-channel genes</h1>
         <div>
-          <p class="lede">Predictions for all 349,056 variants, from missense to intronic, each reported as an ACMG evidence strength rather than a raw probability. The evidence bins were validated on genes that took no part in calibrating them.</p>
+          <p class="lede">Look up any of the 349,056 ClinVar variants in these genes. Every variant has a pathogenicity score and an evidence level you can use with the ACMG/AMP guidelines. Missense, splice, intronic, frameshift and all other variant types are included.</p>
           <div class="search search-lg" data-search>
             <svg class="glass" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
             <label class="visually-hidden" for="q-hero">Search by gene, rsID or HGVS</label>
-            <input id="q-hero" type="search" autocomplete="off" spellcheck="false" placeholder="Gene symbol, rsID, ClinVar ID or HGVS">
+            <input id="q-hero" type="search" autocomplete="off" spellcheck="false" placeholder="Search a gene, rsID, ClinVar ID or HGVS">
           </div>
-          <p class="examples">Try <a href="gene.html?g=SLC19A2">SLC19A2</a>, <a href="gene.html?g=CFTR">CFTR</a>, <a href="gene.html?g=KCNQ1">KCNQ1</a>, <span id="ex-variants"></span></p>
+          <p class="examples">For example <a href="gene.html?g=SLC19A2">SLC19A2</a>, <a href="gene.html?g=CFTR">CFTR</a>, <a href="gene.html?g=KCNQ1">KCNQ1</a>, <span id="ex-variants"></span></p>
         </div>
       </div>
 
       <figure class="hero-figure">
         <div id="hero-wave" class="mapbox" style="padding-top:6px"></div>
-        <figcaption id="hero-cap">SLC19A2, the thiamine transporter, drawn through the membrane.</figcaption>
+        <figcaption id="hero-cap">SLC19A2, the thiamine transporter, drawn across the cell membrane.</figcaption>
       </figure>
     </div>
   </section>
 
-  <section class="band" id="coverage" aria-labelledby="cov-h">
-    <div class="wrap two">
-      <div class="prose">
-        <h2 id="cov-h">Half of these variants are not missense</h2>
-        <p>Most variant-effect predictors score missense changes only. In these genes, <span id="cov-nonmis">170,051</span> ClinVar entries are synonymous, intronic, splice, frameshift, nonsense, indel or UTR variants. AlphaMissense, the strongest missense predictor, covers <span id="cov-am">177,464</span> variants here, all of them missense, and scores 23.6% of the labelled subset.</p>
-        <p>This resource scores every class. Evaluated on 7,039 labelled variants never used in training, across all thirteen classes:</p>
-        <table class="cal" style="margin-top:6px">
-          <thead><tr><th>Model</th><th class="n">AUC</th></tr></thead>
-          <tbody>
-            <tr><td><b>This resource, with CADD</b></td><td class="n"><b>0.9853</b></td></tr>
-            <tr><td>This resource alone</td><td class="n">0.9851</td></tr>
-            <tr><td>Consequence class alone, a lookup table</td><td class="n">0.9588</td></tr>
-            <tr><td>CADD PHRED</td><td class="n">0.9519</td></tr>
-          </tbody>
-          <caption>The lookup table is the baseline that matters: knowing only that a variant is a frameshift or a synonymous change already reaches 0.9588 on this mix.</caption>
-        </table>
-      </div>
-      <div>
-        <div class="cov" id="cov"></div>
-        <p class="cov-note"><i></i> Hatched: covered by AlphaMissense</p>
-        <table class="cal" style="margin-top:34px">
-          <thead><tr><th>On 1,998 out-of-sample missense variants</th><th class="n">AUC</th></tr></thead>
-          <tbody>
-            <tr><td><b>Routed track: our model with AlphaMissense</b></td><td class="n"><b>0.9538</b></td></tr>
-            <tr><td>AlphaMissense alone</td><td class="n">0.9455</td></tr>
-            <tr><td>Native track: our model alone</td><td class="n">0.9163</td></tr>
-          </tbody>
-          <caption>Our model alone loses to AlphaMissense on missense. The combination wins (DeLong p = 0.016), which is why the routed track exists. Outside missense, AlphaMissense offers nothing to combine with.</caption>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <section class="band" id="evidence" aria-labelledby="ev-h">
-    <div class="wrap two">
-      <div class="prose">
-        <h2 id="ev-h">Read the evidence, not the score</h2>
-        <p>Each score is converted to a likelihood ratio against the base rate and binned at the odds behind the ACMG combining rules (Tavtigian et al. 2018): 350 for very strong, 18.7 strong, 4.33 moderate and 2.08 supporting, with the reciprocals for benign evidence.</p>
-        <p>A 0.5 cut-off on the raw score over-calls badly. The model's training set was 45% pathogenic, while a gene panel is mostly benign, so a raw probability is miscalibrated for that setting. The likelihood ratio is what transfers.</p>
-        <p>The table shows how pure each bin is when the calibration is refitted on half the genes and read off the other half, so no gene calibrates the bin its own variants fall in. These are the rates to expect on a gene the model was not tuned for.</p>
-      </div>
-      <div>
-        <table class="cal" id="caltable"></table>
-      </div>
-    </div>
-  </section>
-
-  <section class="band" id="caveats" aria-labelledby="cav-h">
+  <section class="band tight" aria-label="Key facts">
     <div class="wrap">
-      <h2 id="cav-h">Before you use it</h2>
-      <div class="caveats">
-        <div><h3>Exclude variants seen in training</h3><p>147,162 rows are flagged <code>in_training</code>: the model was fitted on their ClinVar labels. Any accuracy estimate must leave them out. Every figure on this site already does.</p></div>
-        <div><h3>Check AlphaMissense coverage on the routed track</h3><p>Where <code>has_alphamissense</code> is FALSE, AlphaMissense does not cover the variant and the routed track serves the native score. The <code>v2_plus</code> column imputes AlphaMissense there and should not be read.</p></div>
-        <div><h3>Mechanism is a hypothesis generator</h3><p>The mechanism layer, written only for confidently pathogenic variants, transfers across proteins in aggregate. Its per-variant calls on genes without measurements are unproven: on SLC19A2 and SLC19A3, two independent models agreed at Spearman 0.009, against 0.536 where the answer is known.</p></div>
-        <div><h3>ClinVar is partly circular</h3><p>ClinVar assertions are themselves informed in part by computational evidence, so some circularity cannot be excluded from any benchmark built on them. The within-class results are the more conservative reading.</p></div>
-        <div><h3>Some missense variants have only a class-level score</h3><p><span id="cls-n">2,852</span> missense variants could not be placed on the UniProt sequence: multi-nucleotide changes, or residues numbered on a different transcript. They were scored by the consequence-class model, which knows only that they are missense, so their evidence is weak. They are flagged on every gene page.</p></div>
-        <div><h3>The protein map summarises existing variants</h3><p>Regional colours average the predictions for ClinVar variants that have been reported near each residue. They are not a saturation scan, and a critical region with few reported variants shows as grey.</p></div>
-        <div><h3>Research use</h3><p>These are predictions, calibrated and validated, but not a clinical classification. Combine them with other evidence under the ACMG framework, as the evidence strengths are designed for.</p></div>
-      </div>
+      <ul class="facts-row">
+        <li><b id="f-variants">349,056</b> ClinVar variants</li>
+        <li><b id="f-genes">783</b> genes</li>
+        <li><b>13</b> variant types</li>
+        <li><b id="f-activity">176,153</b> missense variants with predicted activity</li>
+      </ul>
+      <p class="startnote">Using these predictions for variant classification? Start with <a href="help.html#levels">what the evidence levels mean</a> and <a href="help.html#limits">the known limitations</a>.</p>
     </div>
   </section>
 
-  <section class="band" id="browse" aria-labelledby="br-h">
+  <section class="band" id="genes" aria-labelledby="br-h">
     <div class="wrap">
-      <h2 id="br-h">Browse the genes</h2>
+      <h2 id="br-h">Genes</h2>
+      <p class="muted section-intro">Pick a family or type a name. Each gene page has a protein map, a 3D structure and a table of every variant.</p>
       <div class="browse-tools">
         <div class="chips" id="famchips"></div>
         <input type="search" id="gfilter" placeholder="Filter genes" aria-label="Filter genes by symbol or protein name">
       </div>
       <div class="genes" id="genes"></div>
       <p class="more"><button type="button" class="btn ghost" id="gmore" hidden>Show all genes</button></p>
-      <p class="small muted" style="margin-top:10px">Bars show each gene's native-track evidence mix, pathogenic on the left, benign on the right.</p>
-    </div>
-  </section>
-
-  <section class="band" id="download" aria-labelledby="dl-h">
-    <div class="wrap">
-      <h2 id="dl-h">Download</h2>
-      <p class="prose muted" style="margin-bottom:26px">The two tracks are separate files under separate licences. Keep them separate: the native track carries no third-party predictions and can be used commercially, the routed track cannot.</p>
-      <div class="dl">
-        <article class="native">
-          <h3>Native track</h3>
-          <div class="lic"><b>CC BY 4.0</b>Free to reuse for any purpose, including commercially, with attribution.</div>
-          <ul>
-            <li>Our model alone. No third-party predictions.</li>
-            <li>All 349,056 variants in all thirteen consequence classes.</li>
-            <li>Identifiers, ClinVar assertion, <code>in_training</code>, score, likelihood ratio, evidence, activity and mechanism.</li>
-          </ul>
-          <a class="btn" id="dl-native" href="downloads/native/transporter_variants_native.csv.gz" download>Download native track, CC BY 4.0</a>
-          <div class="small" style="margin-top:10px"><a href="downloads/native/LICENSE-native">LICENSE-native</a></div>
-          <div class="sha" id="sha-native"></div>
-        </article>
-        <article class="routed">
-          <h3>Routed track</h3>
-          <div class="lic"><b>CC BY-NC-SA 4.0</b>Non-commercial use only, and adaptations must be shared under the same terms. Inherited from AlphaMissense.</div>
-          <ul>
-            <li>Our model with AlphaMissense for the 177,464 variants AlphaMissense covers; our model alone elsewhere.</li>
-            <li>The most accurate track on missense variants.</li>
-            <li>Adds <code>has_alphamissense</code>, <code>v2_plus</code> and <code>alphamissense</code>. Read <code>v2_plus</code> only where <code>has_alphamissense</code> is TRUE.</li>
-          </ul>
-          <a class="btn" id="dl-routed" href="downloads/routed/transporter_variants_routed.csv.gz" download>Download routed track, CC BY-NC-SA 4.0</a>
-          <div class="small" style="margin-top:10px"><a href="downloads/routed/LICENSE-routed">LICENSE-routed</a></div>
-          <div class="sha" id="sha-routed"></div>
-        </article>
-      </div>
-      <p class="docs-links">Also: <a href="downloads/README.md">README</a> <a href="downloads/DATA_DICTIONARY.md">Data dictionary</a> <a href="downloads/CALIBRATION_CHECK.md">Calibration check</a> <a href="downloads/CITATION.cff">CITATION.cff</a> <a href="downloads/CHECKSUMS.txt">SHA-256 checksums</a> <a href="downloads/COMPLETION_115.md">1.0.1 completion report</a></p>
-
-      <h3 style="margin-top:44px">Columns</h3>
-      <table class="coltable">
-        <tbody>
-          <tr><td>gene, family</td><td class="which">both</td><td>HGNC symbol and transporter family</td></tr>
-          <tr><td>variation_id, rsid, hgvs</td><td class="which">both</td><td>ClinVar VariationID, dbSNP identifier, HGVS as given by ClinVar</td></tr>
-          <tr><td>consequence, protein_variant</td><td class="which">both</td><td>Variant class and protein change, where the class defines one</td></tr>
-          <tr><td>clinsig, review_status</td><td class="which">both</td><td>The ClinVar assertion at download and its review status; reference only, not a prediction target</td></tr>
-          <tr><td>in_training</td><td class="which">both</td><td><b>TRUE if the model saw this variant. Exclude these rows from any performance estimate.</b></td></tr>
-          <tr><td>track</td><td class="which">both</td><td><code>plus</code> where the routed track used AlphaMissense, otherwise <code>native</code></td></tr>
-          <tr><td>has_alphamissense</td><td class="which">both</td><td>Whether AlphaMissense genuinely covers this variant</td></tr>
-          <tr><td>score</td><td class="which">both</td><td>Pathogenicity score from 0 to 1 from the named track. Do not threshold it at 0.5.</td></tr>
-          <tr><td>lr</td><td class="which">both</td><td>Likelihood ratio of this score's bin against the base rate</td></tr>
-          <tr><td>evidence</td><td class="which">both</td><td>ACMG evidence strength derived from <code>lr</code>. The column to read.</td></tr>
-          <tr><td>v2_native</td><td class="which">both</td><td>Our model alone, for every variant</td></tr>
-          <tr><td>v2_plus</td><td class="which">routed</td><td>Our model with AlphaMissense. Imputes AlphaMissense where it is absent, so read it only where <code>has_alphamissense</code> is TRUE.</td></tr>
-          <tr><td>alphamissense</td><td class="which">routed</td><td>AlphaMissense score, where available</td></tr>
-          <tr><td>activity_pred</td><td class="which">both</td><td>Predicted transport or enzymatic activity for missense variants, from 0 (abolished) to 1 (wild-type-like), on the rank scale of deep mutational scans. A graded estimate, not a call.</td></tr>
-          <tr><td>mechanism_pred</td><td class="which">both</td><td><b>Exploratory.</b> For confidently pathogenic variants only: the predicted probability that loss of function is activity-specific rather than expression-driven. A regression output, so a few values fall slightly outside 0 to 1; this site clips them for display.</td></tr>
-          <tr><td>layers_in_sample</td><td class="which">both</td><td>TRUE if the variant's protein has a deep mutational scan that trained the activity and mechanism layers, so those two values are in-sample</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="band" id="cite" aria-labelledby="ci-h">
-    <div class="wrap">
-      <h2 id="ci-h">Cite</h2>
-      <p class="prose muted">If you use these predictions, cite the dataset. If you use the routed track, cite AlphaMissense too.</p>
-      <div class="cite">Abo-Dahab Y, Chun J, Giacomini KM. <i>Calibrated pathogenicity predictions for 783 human transporter and ion-channel genes.</i> Version <span class="relver">1.0.1</span>, released <span class="reldate">25 October 2026</span>. https://joevondahab.github.io/transporter-variants/</div>
-      <div class="cite">Cheng J, Novati G, Pan J, et al. Accurate proteome-wide missense variant effect prediction with AlphaMissense. <i>Science</i> 381, eadg7492 (2023). <a href="https://doi.org/10.1126/science.adg7492">doi:10.1126/science.adg7492</a></div>
-      <p class="small muted" style="margin-top:18px">Evidence thresholds: Tavtigian SV et al., Modeling the ACMG/AMP variant classification guidelines as a Bayesian classification framework, <i>Genet Med</i> 20, 1054–1060 (2018). Protein maps use UniProtKB annotations (CC BY 4.0<span id="up-rel"></span>) and AlphaFold DB models (CC BY 4.0), fetched from <a href="https://alphafold.ebi.ac.uk">alphafold.ebi.ac.uk</a> when a gene page opens.</p>
+      <p class="small muted" style="margin-top:10px">The coloured bar under each gene shows how its variants split across evidence levels, from pathogenic (left, red) to benign (right, blue).</p>
     </div>
   </section>
 </main>
@@ -195,12 +79,11 @@
 <footer>
   <div class="wrap">
     <div>
-      <p>Youssef Abo-Dahab, Joanne Chun and Kathleen M. Giacomini, Department of Bioengineering and Therapeutic Sciences, University of California, San Francisco. Correspondence: <a href="mailto:youssef.nageh@gmail.com">youssef.nageh@gmail.com</a>.</p>
-      <p>Release <span class="relver">1.0.1</span>, <span class="reldate">25 October 2026</span>. Predictions are for research use and are not a clinical classification.</p>
+      <p>Youssef Abo-Dahab, Joanne Chun and Kathleen M. Giacomini, Department of Bioengineering and Therapeutic Sciences, University of California, San Francisco. Contact: <a href="mailto:youssef.nageh@gmail.com">youssef.nageh@gmail.com</a>.</p>
+      <p>Release <span class="relver">1.0.1</span>, <span class="reldate">25 October 2026</span>. These are research predictions. They are not a clinical classification.</p>
     </div>
     <div>
-      <p>Native track and site data derived from it: CC BY 4.0. Routed track and its pages on this site: CC BY-NC-SA 4.0, inherited from AlphaMissense.</p>
-      <p><a href="https://github.com/JoeVonDahab/transporter-variants">Source on GitHub</a></p>
+      <p><a href="help.html">How to use</a><br><a href="download.html">Download and cite</a><br><a href="https://github.com/JoeVonDahab/transporter-variants">Source code on GitHub</a></p>
     </div>
   </div>
 </footer>

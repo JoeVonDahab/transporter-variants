@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Download and cite | Transporter Variants</title>
+<meta name="description" content="Download the full prediction tables for 349,056 ClinVar variants in 783 transporter and ion-channel genes, with their licences, and see how to cite them.">
+<link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Spectral:ital,wght@0,500;0,600;1,500&display=swap">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <a class="wordmark" href="index.html" aria-label="Transporter Variants, home">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><rect x="0" y="9.5" width="26" height="7" rx="1" fill="var(--lipid)" opacity=".75"/><path d="M2.5 4c4 0 4 18 8 18s4-18 8-18 4 18 5 18" fill="none" stroke="var(--ps)" stroke-width="2.2" stroke-linecap="round"/></svg>
+      <span>Transporter Variants</span>
+    </a>
+    <div class="search" data-search>
+      <svg class="glass" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5 21 21" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <label class="visually-hidden" for="q-top">Search by gene, rsID or HGVS</label>
+      <input id="q-top" type="search" autocomplete="off" spellcheck="false" placeholder="Gene, rsID or HGVS">
+    </div>
+    <nav aria-label="Main">
+      <a href="index.html#genes">Genes</a>
+      <a href="help.html">How to use</a>
+      <a href="download.html" aria-current="page">Download and cite</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap page">
+  <h1>Download and cite</h1>
+  <p class="lede-sm">Each file is one table covering all 349,056 variants. The two files differ in whether AlphaMissense was used, and so in their licences. Choose the one that fits how you will use it.</p>
+
+  <div class="dl">
+    <article class="native">
+      <h2>Our model only</h2>
+      <div class="lic"><b>CC BY 4.0</b>Free for any use, including commercial, if you credit the source.</div>
+      <ul>
+        <li>Every variant, scored by our model alone</li>
+        <li>No third-party predictions</li>
+        <li>Gzipped CSV, file name <code>transporter_variants_native.csv.gz</code></li>
+      </ul>
+      <a class="btn" id="dl-native" href="downloads/native/transporter_variants_native.csv.gz" download>Download</a>
+      <div class="small" style="margin-top:10px"><a href="downloads/native/LICENSE-native">Licence text</a></div>
+      <div class="sha" id="sha-native"></div>
+    </article>
+    <article class="routed">
+      <h2>With AlphaMissense</h2>
+      <div class="lic"><b>CC BY-NC-SA 4.0</b>Non-commercial use only. Anything you build from it must be shared under the same licence. These terms come from AlphaMissense.</div>
+      <ul>
+        <li>Our model combined with AlphaMissense for the <span class="n-am">177,464</span> missense variants it covers; our model alone for the rest</li>
+        <li>The more accurate version for missense variants</li>
+        <li>Gzipped CSV, file name <code>transporter_variants_routed.csv.gz</code></li>
+      </ul>
+      <a class="btn" id="dl-routed" href="downloads/routed/transporter_variants_routed.csv.gz" download>Download</a>
+      <div class="small" style="margin-top:10px"><a href="downloads/routed/LICENSE-routed">Licence text</a></div>
+      <div class="sha" id="sha-routed"></div>
+    </article>
+  </div>
+  <p class="small muted" style="margin-top:14px">Please keep the two files separate when you share or reuse them, so each keeps its own licence. To get one gene only, use the download button on that gene's page.</p>
+
+  <h2 class="pg-h2">Documentation files</h2>
+  <ul class="plain">
+    <li><a href="downloads/README.md">README</a>: what the release contains</li>
+    <li><a href="downloads/DATA_DICTIONARY.md">Data dictionary</a>: every column, also described on <a href="help.html#columns">How to use</a></li>
+    <li><a href="downloads/CALIBRATION_CHECK.md">Calibration check</a>: the held-out test of the evidence levels</li>
+    <li><a href="downloads/COMPLETION_115.md">Release 1.0.1 notes</a>: what changed since 1.0.0</li>
+    <li><a href="downloads/CITATION.cff">CITATION.cff</a> and <a href="downloads/CHECKSUMS.txt">SHA-256 checksums</a></li>
+  </ul>
+
+  <h2 class="pg-h2" id="cite">How to cite</h2>
+  <p>If you use these predictions, please cite:</p>
+  <div class="cite">Abo-Dahab Y, Chun J, Giacomini KM. <i>Calibrated pathogenicity predictions for 783 human transporter and ion-channel genes.</i> Version <span class="relver">1.0.1</span>, <span class="reldate">25 October 2026</span>. https://joevondahab.github.io/transporter-variants/</div>
+  <p style="margin-top:18px">If you use the With AlphaMissense version, please also cite:</p>
+  <div class="cite">Cheng J, Novati G, Pan J, et al. Accurate proteome-wide missense variant effect prediction with AlphaMissense. <i>Science</i> 381, eadg7492 (2023). <a href="https://doi.org/10.1126/science.adg7492">doi:10.1126/science.adg7492</a></div>
+
+  <h2 class="pg-h2">Data sources</h2>
+  <ul class="plain">
+    <li>Variants and classifications from ClinVar.</li>
+    <li>Protein sequences, membrane topology and functional sites from UniProtKB<span id="up-rel"></span> (CC BY 4.0).</li>
+    <li>Protein structures from AlphaFold DB (CC BY 4.0), loaded from alphafold.ebi.ac.uk when you open a gene page.</li>
+    <li>Evidence thresholds from Tavtigian SV et al., <i>Genet Med</i> 20, 1054–1060 (2018).</li>
+  </ul>
+  <p class="small muted" style="margin:28px 0 70px">The site's own code is MIT licensed and available <a href="https://github.com/JoeVonDahab/transporter-variants">on GitHub</a>.</p>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <p>Youssef Abo-Dahab, Joanne Chun and Kathleen M. Giacomini, University of California, San Francisco. Contact: <a href="mailto:youssef.nageh@gmail.com">youssef.nageh@gmail.com</a>.</p>
+      <p>These are research predictions. They are not a clinical classification.</p>
+    </div>
+    <div><p><a href="help.html">How to use</a><br><a href="https://github.com/JoeVonDahab/transporter-variants">Source code on GitHub</a></p></div>
+  </div>
+</footer>
+
+<script src="assets/common.js"></script>
+<script src="assets/docs.js"></script>
+</body>
+</html>
