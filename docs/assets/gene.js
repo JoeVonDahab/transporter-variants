@@ -44,9 +44,9 @@
         vid: r[0], rs: r[1], hp: r[2] >= 0 ? pre[r[2]] : "", hs: r[3], cons: r[4], pv: r[5],
         clinsig: r[6] == null ? "" : cs[r[6]], review: r[7] == null ? "" : rv[r[7]],
         train: r[8] === 1, ev: r[9], score: r[10], lr: r[11], act: r[12], mech: r[13],
-        lis: r[14] === 1, pos: r[15], cls: r[16] === 1,
+        lis: r[14] === 1, pos: r[15], cls: r[16] === 1, acmg: r[17] ?? null, ev1: r[18] ?? null,
       };
-      if (routed) { o.plus = r[17] === 1; o.hasAM = r[18] === 1; o.v2n = r[19]; o.v2p = r[20]; o.am = r[21]; }
+      if (routed) { o.plus = r[19] === 1; o.hasAM = r[20] === 1; o.v2n = r[21]; o.v2p = r[22]; o.am = r[23]; }
       o.hgvs = o.hp + o.hs;
       o.mclip = o.mech == null ? null : Math.max(0, Math.min(1, o.mech));
       return o;
@@ -379,7 +379,7 @@
     return `<thead><tr>
       ${th("hgvs", "Variant", "HGVS, rsID and flags")}
       ${th("cons", "Type")}
-      ${th("ev", "Evidence level", "use this")}
+      ${th("ev", "Evidence level", "use this; ACMG code below")}
       ${th("lr", "LR", "likelihood ratio", "num")}
       ${th("score", "Raw score", "for reference", "num")}
       ${th("act", "Activity", "0 none, 1 normal", "num")}
@@ -405,7 +405,9 @@
     const pred = [
       `<dt>Version</dt><dd>${routed ? (o.plus ? "With AlphaMissense: our model combined with AlphaMissense" : "With AlphaMissense: our model alone (AlphaMissense does not cover this variant)") : "Our model only"}</dd>`,
       `<dt>Evidence</dt><dd>${evChip(o.ev, true)}</dd>`,
+      `<dt>ACMG code</dt><dd>${o.acmg ? `<span class="code">${esc(o.acmg)}</span>` : o.cons === 0 ? "none (indeterminate)" : "none (codes are given for missense only)"}</dd>`,
       `<dt>Likelihood ratio</dt><dd>${fmtLR(o.lr)}</dd>`,
+      ...(o.ev1 != null && o.ev1 !== o.ev ? [`<dt>Level before 1.1.0</dt><dd>${EV_LABEL[o.ev1]}</dd>`] : []),
       `<dt>Raw score</dt><dd>${o.score ?? ""}</dd>`,
     ];
     if (routed) {
@@ -419,8 +421,7 @@
     if (o.lis && lay.length) lay.push(`<dt>In-sample</dt><dd>This protein's deep mutational scan trained these layers.</dd>`);
     const notes = [];
     if (o.cls) notes.push("<b>Class-level score.</b> This missense change could not be placed on the UniProt sequence the model uses. It changes more than one DNA base, or ClinVar numbers it on a different transcript. It was scored by a simpler model that only knows the variant is missense, so its evidence is weak and it has no activity or mechanism value.");
-    if (o.ev === 0) notes.push('<b>Count this as strong.</b> On genes held out from calibration, variants at this level were 99.2% pathogenic, which is the strength of the strong level. <a href="help.html#levels">Details</a>');
-    if (o.ev === 4) notes.push('<b>Indeterminate is not neutral here.</b> On held-out genes, 76% of variants at this level were pathogenic. <a href="help.html#levels">Details</a>');
+    if (o.ev === 4) notes.push('<b>Indeterminate is not the same as benign.</b> The score falls short of the supporting threshold, which is set cautiously. On held-out genes most variants at this level were pathogenic. <a href="help.html#levels">Details</a>');
     if (o.train) notes.push("<b>Seen in training.</b> The model was trained on this variant's ClinVar classification, so this prediction is not an independent test. Leave it out of any accuracy estimate.");
     if (routed && !o.hasAM) notes.push("AlphaMissense does not cover this variant, so the score shown is our model's alone. Ignore the “combined with AlphaMissense” value for this row.");
     if (o.mech != null) notes.push("Mechanism is exploratory. Single predictions on genes without lab data are unreliable.");
@@ -455,7 +456,7 @@
       return `<tr class="v${open ? " open" : ""}${S.text && hl.has(o.vid) && rows.length <= 3 ? " hl" : ""}" data-vid="${o.vid}" tabindex="0" aria-expanded="${open}">
         <td class="vcell"><div class="hg">${esc(hg)}</div>${pp ? `<div class="pp">${esc(pp)}</div>` : ""}<div class="rs">${o.rs ? `rs${o.rs}` : ""}</div><div>${flags(o)}</div></td>
         <td>${esc(CONS_LABEL[S.idx.cons[o.cons]])}</td>
-        <td>${evChip(o.ev, true)}</td>
+        <td>${evChip(o.ev, true)}${o.acmg ? `<div class="code small">${esc(o.acmg)}</div>` : ""}</td>
         <td class="num">${fmtLR(o.lr)}</td>
         <td class="num sc">${o.score == null ? "" : o.score.toFixed(3)}</td>
         <td class="num">${o.act == null ? "" : o.act.toFixed(2)}</td>
@@ -496,13 +497,13 @@
   function downloadGene() {
     const routed = S.track === "routed";
     const cols = ["gene", "variation_id", "rsid", "hgvs", "consequence", "protein_variant", "clinsig", "review_status",
-      "in_training", "class_level_score", "evidence", "lr", "score", ...(routed ? ["served_by", "has_alphamissense", "v2_native", "v2_plus", "alphamissense"] : []),
+      "in_training", "class_level_score", "evidence", "acmg_code", "evidence_v1", "lr", "score", ...(routed ? ["served_by", "has_alphamissense", "v2_native", "v2_plus", "alphamissense"] : []),
       "activity_pred", "mechanism_pred", "layers_in_sample"];
     const q = v => v == null ? "" : /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v);
     const lines = [cols.join(",")];
     for (const o of S.rows) {
       lines.push([GENE, o.vid, o.rs ? `rs${o.rs}` : "", o.hgvs, S.idx.cons[o.cons], o.pv, o.clinsig, o.review,
-        o.train ? "TRUE" : "FALSE", o.cls ? "TRUE" : "FALSE", S.idx.ev[o.ev], o.lr, o.score,
+        o.train ? "TRUE" : "FALSE", o.cls ? "TRUE" : "FALSE", S.idx.ev[o.ev], o.acmg, o.ev1 == null ? "" : S.idx.ev[o.ev1], o.lr, o.score,
         ...(routed ? [o.plus ? "plus" : "native", o.hasAM ? "TRUE" : "FALSE", o.v2n, o.v2p, o.am] : []),
         o.act, o.mech, o.act == null && o.mech == null ? "" : (o.lis ? "TRUE" : "FALSE")].map(q).join(","));
     }

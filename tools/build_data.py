@@ -106,6 +106,37 @@ def protein_name(entry):
     return rec.get("fullName", {}).get("value", "")
 
 
+def parse_calibration_v11(md):
+    """CALIBRATION_CHECK.md from release 1.1.0 on: score thresholds plus one validation table per track."""
+    out = {"method": "pejaver2022", "prior": 0.0441, "thresholds": [], "tables": {}}
+    sections = re.split(r"^#{2,3} ", md, flags=re.M)
+    for sec in sections:
+        head, _, body = sec.partition("\n")
+        head = head.strip()
+        if head.startswith("Score thresholds"):
+            for line in body.splitlines():
+                cells = [c.strip() for c in line.strip().strip("|").split("|")]
+                if len(cells) >= 11 and cells[0] not in ("Unit", "") and not cells[0].startswith("---"):
+                    out["thresholds"].append({"unit": cells[0], "serves": cells[1], "labelled": cells[2],
+                                              "levels": cells[3:10], "max": cells[10]})
+            continue
+        m = re.match(r"(routed|native) track, (ClinGen calibration|missense|for comparison)", head)
+        if not m:
+            continue
+        key = f"{m.group(1)}_{'all' if m.group(2).startswith('ClinGen') else 'missense' if m.group(2) == 'missense' else 'old'}"
+        rows = []
+        for line in body.splitlines():
+            r = re.match(r"^\|\s*([a-z ]+?)(?:\s*\(([^)]*)\))?\s*\|\s*([\d,]+)\s*\|\s*([\d.]+)%\s*\|\s*([\d.e+-]+)\s*\[([\d.e+-]+),\s*([\d.e+-]+)\]\s*\|\s*([\d.]+)\s*\|\s*(.*?)\s*\|$", line)
+            if r:
+                rows.append({"level": r.group(1).strip(), "code": r.group(2), "n": int(r.group(3).replace(",", "")),
+                             "observed": float(r.group(4)), "lr": float(r.group(5)), "lo": float(r.group(6)),
+                             "hi": float(r.group(7)), "posterior": float(r.group(8)), "flag": r.group(9)})
+        out["tables"][key] = rows
+    m = re.search(r"([\d,]+) labelled out-of-sample variants", md)
+    out["n"] = int(m.group(1).replace(",", "")) if m else None
+    return out
+
+
 def parse_calibration(md):
     rows, base, n_total, n_genes = [], None, None, None
     for line in md.splitlines():
@@ -148,7 +179,13 @@ def main():
     # Which branch scored each variant. The release drops this column, but it matters for missense:
     # a missense variant whose protein change could not be mapped onto the UniProt sequence was scored
     # by the consequence-class branch, which knows only that it is missense, not where or what.
-    br = pd.read_csv(TV / "published_scores.csv", usecols=["variation_id", "branch"])
+    # from 1.0.2 on, rescued variants moved to the missense branch; their scores live in the
+    # versioned file, while published_scores.csv stays frozen as the 1.0.1 manuscript input
+    scores_file = TV / "published_scores_v1.0.2.csv"
+    if not scores_file.exists():
+        scores_file = TV / "published_scores.csv"
+    print(f"branch from {scores_file.name}")
+    br = pd.read_csv(scores_file, usecols=["variation_id", "branch"])
     br = dict(zip(br.variation_id, br.branch))
     for df in (nat, rou):
         df["class_level"] = ((df.consequence == "missense") &
@@ -239,10 +276,13 @@ def main():
                     None if pd.isna(t.review_status) else rv_i[str(t.review_status)],
                     b01(t.in_training), EV.index(t.evidence), rnd(t.score, 4), sig(t.lr),
                     rnd(t.activity_pred, 3), rnd(t.mechanism_pred, 3),
-                    b01(t.layers_in_sample), pos, int(t.class_level)]
+                    b01(t.layers_in_sample), pos, int(t.class_level),
+                    None if pd.isna(getattr(t, "acmg_code", None)) else str(t.acmg_code),
+                    None if pd.isna(getattr(t, "evidence_v1", None)) or t.evidence_v1 not in EV else EV.index(t.evidence_v1)]
         COLS = ["variation_id", "rsid", "hgvs_prefix", "hgvs", "consequence", "protein_variant",
                 "clinsig", "review_status", "in_training", "evidence", "score", "lr",
-                "activity_pred", "mechanism_pred", "layers_in_sample", "pos", "class_level"]
+                "activity_pred", "mechanism_pred", "layers_in_sample", "pos", "class_level",
+                "acmg_code", "evidence_v1"]
 
         # ---- native track (CC BY 4.0)
         rows, pre = [], {}
@@ -290,7 +330,12 @@ def main():
         s = nat[nat.consequence == c]
         by_cons.append([c, len(s), int(s.has_alphamissense.sum())])
     fam_counts = nat.groupby("family").agg(genes=("gene", "nunique"), variants=("gene", "size"))
-    cal = parse_calibration((REL / "CALIBRATION_CHECK.md").read_text())
+    cal_md = (REL / "CALIBRATION_CHECK.md").read_text()
+    cal = parse_calibration_v11(cal_md) if "Pejaver" in cal_md else parse_calibration(cal_md)
+    if cal.get("method") == "pejaver2022":
+        for k in ("routed_all", "native_all", "routed_missense", "native_missense"):
+            assert cal["tables"].get(k), f"calibration table {k} not parsed"
+        assert len(cal["thresholds"]) == 3, "threshold table not parsed"
     cff = (REL / "CITATION.cff").read_text()
     version = re.search(r"^version:\s*(\S+)", cff, re.M).group(1)
     released = re.search(r"^date-released:\s*(\S+)", cff, re.M).group(1)
@@ -305,6 +350,8 @@ def main():
         "mechanism_routed": int(rou.mechanism_pred.notna().sum()),
         "routed_plus": int((rou.track == "plus").sum()),
         "class_level_missense": int(nat.class_level.sum()),
+        "acmg_native": nat.acmg_code.value_counts().to_dict() if "acmg_code" in nat else {},
+        "acmg_routed": rou.acmg_code.value_counts().to_dict() if "acmg_code" in rou else {},
         "by_consequence": by_cons,
         "families": [[f, int(r.genes), int(r.variants)] for f, r in
                      fam_counts.sort_values("variants", ascending=False).iterrows()],
@@ -319,7 +366,8 @@ def main():
     for sub, files in (("native", ["transporter_variants_native.csv.gz", "LICENSE-native"]),
                        ("routed", ["transporter_variants_routed.csv.gz", "LICENSE-routed"]),
                        ("", ["README.md", "DATA_DICTIONARY.md", "CALIBRATION_CHECK.md",
-                             "CITATION.cff", "CHECKSUMS.txt", "COMPLETION_115.md"])):
+                             "CITATION.cff", "CHECKSUMS.txt", "CHANGELOG.md", "EVIDENCE_1.1.0.md",
+                             "COMPLETION_115.md"])):
         (dl / sub).mkdir(parents=True, exist_ok=True)
         for f in files:
             if (REL / f).exists():

@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Spectral:ital,wght@0,500;0,600;1,500&display=swap">
-<link rel="stylesheet" href="assets/style.css?v=4b6ba8d60f">
+<link rel="stylesheet" href="assets/style.css?v=20c5f1a443">
 </head>
 <body>
 <header class="topbar">
@@ -55,14 +55,23 @@
 
     <section id="levels">
       <h2>Evidence levels</h2>
-      <p>Every variant is placed in one of eight evidence levels, from <i>Benign strong</i> to <i>Pathogenic very strong</i>. The level comes from a likelihood ratio: how much more often a score like this one turns up among pathogenic variants than among benign ones.</p>
-      <p>Likelihood ratios were grouped with the odds thresholds from Tavtigian et al. (2018): 2.08 for supporting, 4.33 for moderate, 18.7 for strong and 350 for very strong, with the inverse values on the benign side. ClinGen uses the same thresholds for functional assay evidence (Brnich et al. 2019).</p>
-      <p>To test the levels, we set them using half of the genes and checked them on the other half. The table shows, for the labelled variants in the test genes, how many in each level were pathogenic.</p>
+      <p>Every variant gets an evidence level: <i>Benign strong</i>, <i>moderate</i> or <i>supporting</i>, <i>Indeterminate</i>, or <i>Pathogenic supporting</i>, <i>moderate</i> or <i>strong</i>. Missense variants also get the matching ACMG/AMP code, such as PP3_Moderate or BP4_Supporting.</p>
+      <p>The levels were set with the method ClinGen recommends for prediction tools (Pejaver et al. 2022). For each score we estimate how much more often it turns up among pathogenic variants than among benign ones, a likelihood ratio, assuming that 4.4% of rare variants are pathogenic. Each cut-off sits at the cautious end of a 95% confidence interval, so a variant only reaches a level when the data clearly support it.</p>
+      <p>Missense variants and other variant types were calibrated separately, because the same score means different things for each. The With AlphaMissense version has its own calibration for the missense variants that AlphaMissense covers. These are the score cut-offs:</p>
+      <div class="xscroll"><table class="cal" id="thrtable"></table></div>
+      <p>No variant type reached <i>Pathogenic very strong</i>. Missense variants reach <i>moderate</i> pathogenic evidence at most: the strong level needs more labelled missense variants than the roughly 2,000 we could test against.</p>
+
+      <h3 style="margin-top:30px">How the levels held up on new genes</h3>
+      <p>We set the levels using half of the genes and checked them on the other half, then swapped the halves. For the labelled variants in the test genes, the table shows how many at each level were pathogenic and the likelihood ratio that implies.</p>
+      <div class="tabs" role="group" aria-label="Which results to show">
+        <div class="seg" id="caltrack"><button type="button" data-v="routed" aria-pressed="true">With AlphaMissense</button><button type="button" data-v="native" aria-pressed="false">Our model only</button></div>
+        <div class="seg" id="calset"><button type="button" data-v="all" aria-pressed="true">All variant types</button><button type="button" data-v="missense" aria-pressed="false">Missense only</button></div>
+      </div>
       <div class="xscroll"><table class="cal" id="caltable"></table></div>
       <div class="callout">
-        <p><b>Two levels did not match their label in this test.</b> Variants called <i>Pathogenic very strong</i> were 99.2% pathogenic. That is very good, but it is the strength of the strong level, so treat a very strong call as strong. Variants called <i>Indeterminate</i> were 76% pathogenic, which is weak evidence toward pathogenic, so do not read indeterminate as neutral. Only 247 variants were tested in that level.</p>
+        <p><b>No level claimed more than the data support.</b> Because the cut-offs are cautious, many levels did better than their label. It also means variants left <i>indeterminate</i> still lean toward pathogenic: in the test genes, 81 to 85% of them were pathogenic. Read indeterminate as "not enough to call", not as benign.</p>
       </div>
-      <p><b>A note on method.</b> ClinGen's recommended way to calibrate prediction tools (Pejaver et al. 2022) assumes that 4.4% of rare missense variants are pathogenic and uses stricter cut-offs, set at the lower end of a confidence interval. These levels were not made with that method. Please do not report them as ClinGen-calibrated PP3 or BP4 codes.</p>
+      <p class="small muted">Releases 1.0.x used fixed odds thresholds (Tavtigian et al. 2018) without the confidence interval. In the same test, their top level, <i>Pathogenic very strong</i>, only performed at the strong level. Each variant's earlier level is kept in the <code>evidence_v1</code> column of the download files.</p>
     </section>
 
     <section id="score">
@@ -110,15 +119,16 @@
     <section id="activity">
       <h2>Activity and mechanism</h2>
       <p><b>Predicted activity</b> estimates how much of its normal transport or enzyme activity the protein keeps with a given missense change, from 0 (none) to 1 (normal). It was trained on deep mutational scans of 14 proteins. On proteins it had not seen, it agreed with measured activity at a Spearman correlation of 0.50, so treat it as a rough estimate.</p>
-      <p><b>Mechanism is exploratory.</b> It is given only for variants with a confident pathogenic call. It estimates whether the protein reaches its place in the cell but fails to work (activity-specific, values near 1), or never gets there (expression-driven, values near 0). Across proteins it separates the two with an AUC of 0.78. But on SLC19A2 and SLC19A3, two independent models gave almost unrelated answers (Spearman correlation 0.009), so a single prediction on a gene without lab data is unreliable. It can help you decide which variants to test in the lab. It should not be used to classify a variant. A few values fall just outside 0 to 1; the site shows them as 0 or 1.</p>
+      <p><b>Mechanism is exploratory.</b> It is given only for variants with moderate or strong pathogenic evidence. It estimates whether the protein reaches its place in the cell but fails to work (activity-specific, values near 1), or never gets there (expression-driven, values near 0). Across proteins it separates the two with an AUC of 0.78. But on SLC19A2 and SLC19A3, two independent models gave almost unrelated answers (Spearman correlation 0.009), so a single prediction on a gene without lab data is unreliable. It can help you decide which variants to test in the lab. It should not be used to classify a variant. A few values fall just outside 0 to 1; the site shows them as 0 or 1.</p>
     </section>
 
     <section id="acmg">
       <h2>Using this with ACMG/AMP</h2>
       <ul class="plain">
+        <li>For a missense variant, the <code>acmg_code</code> column gives the code to apply: PP3_Supporting, PP3_Moderate, BP4_Supporting, BP4_Moderate or BP4_Strong. Indeterminate variants have no code.</li>
+        <li>Codes are not given for frameshift, nonsense, splice and other variant types. Those are judged with other criteria, such as PVS1 or the ClinGen splicing recommendations, and adding PP3 on top would count the same evidence twice. Their evidence level is still shown for reference.</li>
         <li>Use one prediction tool for PP3 and BP4. If you use these predictions, do not also apply AlphaMissense, REVEL or another predictor to the same variant. The With AlphaMissense version already includes AlphaMissense.</li>
         <li>Pejaver et al. (2022) recommend that PP3 and PM1 together count for no more than strong evidence, because both draw on conservation and protein structure.</li>
-        <li>Count a <i>Pathogenic very strong</i> call as strong, for the reason given under <a href="#levels">Evidence levels</a>.</li>
         <li>When you report a call, note the release number, which version of the data you used, and the raw score.</li>
       </ul>
     </section>
@@ -129,8 +139,8 @@
       <table class="cal">
         <thead><tr><th>Method</th><th class="n">AUC</th></tr></thead>
         <tbody>
-          <tr><td><b>This resource, combined with CADD</b></td><td class="n"><b>0.9853</b></td></tr>
-          <tr><td>This resource alone</td><td class="n">0.9851</td></tr>
+          <tr><td><b>This resource, combined with CADD</b></td><td class="n"><b>0.9854</b></td></tr>
+          <tr><td>This resource alone</td><td class="n">0.9853</td></tr>
           <tr><td>Variant type alone (a lookup table)</td><td class="n">0.9588</td></tr>
           <tr><td>CADD</td><td class="n">0.9519</td></tr>
         </tbody>
@@ -141,12 +151,12 @@
       <table class="cal">
         <thead><tr><th>Method</th><th class="n">AUC</th></tr></thead>
         <tbody>
-          <tr><td><b>With AlphaMissense version</b></td><td class="n"><b>0.9538</b></td></tr>
+          <tr><td><b>With AlphaMissense version</b></td><td class="n"><b>0.9553</b></td></tr>
           <tr><td>AlphaMissense alone</td><td class="n">0.9455</td></tr>
-          <tr><td>Our model only version</td><td class="n">0.9163</td></tr>
+          <tr><td>Our model only version</td><td class="n">0.9189</td></tr>
         </tbody>
       </table>
-      <p class="small muted">On missense variants, our model on its own is less accurate than AlphaMissense. Combined with AlphaMissense, it is more accurate than either (DeLong test, p = 0.016).</p>
+      <p class="small muted">On missense variants, our model on its own is less accurate than AlphaMissense. Combined with AlphaMissense, it is more accurate than either (DeLong test, p = 0.004).</p>
 
       <h3 style="margin-top:34px">Which variants AlphaMissense covers</h3>
       <p>AlphaMissense only scores missense variants. Here it covers <span class="n-am">177,464</span> of them. The other variants, about half of all ClinVar entries in these genes, have no AlphaMissense score; this resource scores all of them.</p>
@@ -158,8 +168,8 @@
       <h2>Limitations</h2>
       <ul class="plain">
         <li>ClinVar classifications are partly based on computational predictions, so some circularity in the accuracy figures cannot be ruled out. The results within a single variant type are the safer reading.</li>
-        <li>Two evidence levels did not perform as labelled on held-out genes; see <a href="#levels">Evidence levels</a>.</li>
-        <li>The evidence levels were not made with ClinGen's PP3/BP4 calibration method.</li>
+        <li>The evidence levels are cautious by design. Many did better than their label on held-out genes, and indeterminate variants still lean toward pathogenic; see <a href="#levels">Evidence levels</a>.</li>
+        <li>Missense variants reach moderate pathogenic evidence at most, because the calibration set holds only about 2,000 labelled missense variants.</li>
         <li><span class="n-cls">2,852</span> missense variants have only a class-level score.</li>
         <li>Only variants in ClinVar are scored. Other possible changes at the same position are not.</li>
         <li>Mechanism predictions are exploratory.</li>
@@ -179,13 +189,15 @@
           <tr><td>track</td><td class="which">both</td><td><code>plus</code> where AlphaMissense was used, otherwise <code>native</code></td></tr>
           <tr><td>has_alphamissense</td><td class="which">both</td><td>Whether AlphaMissense covers the variant</td></tr>
           <tr><td>score</td><td class="which">both</td><td>Raw score from 0 to 1. Do not use 0.5 as a cut-off.</td></tr>
-          <tr><td>lr</td><td class="which">both</td><td>Likelihood ratio for the score</td></tr>
-          <tr><td>evidence</td><td class="which">both</td><td>Evidence level from the likelihood ratio. Use this column.</td></tr>
+          <tr><td>lr</td><td class="which">both</td><td>Likelihood ratio for the score, from the calibration</td></tr>
+          <tr><td>evidence</td><td class="which">both</td><td>Evidence level, set with ClinGen's recommended method. Use this column.</td></tr>
+          <tr><td>acmg_code</td><td class="which">both</td><td>ACMG/AMP code for missense variants (PP3_Supporting to BP4_Strong); blank for indeterminate and for other variant types</td></tr>
+          <tr><td>evidence_v1</td><td class="which">both</td><td>The evidence level in releases 1.0.x, kept for comparison</td></tr>
           <tr><td>v2_native</td><td class="which">both</td><td>Our model's score alone</td></tr>
           <tr><td>v2_plus</td><td class="which">With AlphaMissense</td><td>Our model combined with AlphaMissense. Only meaningful where <code>has_alphamissense</code> is TRUE.</td></tr>
           <tr><td>alphamissense</td><td class="which">With AlphaMissense</td><td>AlphaMissense score, where there is one</td></tr>
           <tr><td>activity_pred</td><td class="which">both</td><td>Predicted activity for missense variants, from 0 (none) to 1 (normal)</td></tr>
-          <tr><td>mechanism_pred</td><td class="which">both</td><td>Exploratory. For confident pathogenic calls only: near 1 means activity-specific, near 0 means expression-driven.</td></tr>
+          <tr><td>mechanism_pred</td><td class="which">both</td><td>Exploratory. For variants with moderate or strong pathogenic evidence only: near 1 means activity-specific, near 0 means expression-driven.</td></tr>
           <tr><td>layers_in_sample</td><td class="which">both</td><td>TRUE if this protein's deep mutational scan trained the activity and mechanism predictions</td></tr>
         </tbody>
       </table>
@@ -209,6 +221,6 @@
 </footer>
 
 <script src="assets/common.js?v=374024e4ee"></script>
-<script src="assets/docs.js?v=442eb85073"></script>
+<script src="assets/docs.js?v=5b483afd92"></script>
 </body>
 </html>

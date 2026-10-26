@@ -33,9 +33,52 @@ document.addEventListener("DOMContentLoaded", () => {
   set(".n-train", fmt(S.in_training));
   if (S.class_level_missense != null) set(".n-cls", fmt(S.class_level_missense));
 
-  /* ---------- evidence levels on held-out genes ---------- */
+  /* ---------- evidence levels (1.1.0 on: ClinGen PP3/BP4 calibration) ---------- */
   const cal = document.getElementById("caltable");
-  if (cal) {
+  if (cal && S.calibration && S.calibration.method === "pejaver2022") {
+    const C = S.calibration;
+    const UNIT = { native_missense: "Missense, our model only", plus: "Missense, with AlphaMissense", native_other: "All other variant types" };
+    const thr = document.getElementById("thrtable");
+    // levels in the file: benign strong, moderate, supporting, pathogenic supporting, moderate, strong, very strong
+    const heads = ["Benign strong", "Benign moderate", "Benign supporting", "Pathogenic supporting", "Pathogenic moderate", "Pathogenic strong"];
+    const keys = [7, 6, 5, 3, 2, 1];
+    if (thr) {
+      const cell = v => /not reached/.test(v) ? `<span class="muted">not reached</span>` : esc(v.replace("<=", "≤").replace(">=", "≥"));
+      thr.innerHTML = `<thead><tr><th>Score from</th>${heads.map((h, i) => `<th class="n">${TV.evChip(keys[i])}</th>`).join("")}</tr></thead>
+        <tbody>${["native_missense", "plus", "native_other"].map(u => {
+          const t = C.thresholds.find(x => x.unit === u);
+          return t ? `<tr><td>${esc(UNIT[u])}</td>${t.levels.slice(0, 6).map(v => `<td class="n">${cell(v)}</td>`).join("")}</tr>` : "";
+        }).join("")}</tbody>
+        <caption>A score at or beyond a cut-off gets that level. Scores between the innermost benign and pathogenic cut-offs are indeterminate.</caption>`;
+    }
+    const PERF = f => !f ? `<span class="muted">As labelled</span>`
+      : /over-claims/i.test(f) ? `<b class="warn-t">Weaker than labelled</b>`
+      : /informative/i.test(f) ? `Leans pathogenic`
+      : /conservative/i.test(f) ? `Better than labelled` : esc(f);
+    const fmtL = x => x >= 100 ? Math.round(x).toLocaleString("en-US") : x >= 10 ? x.toFixed(1) : x >= 1 ? x.toFixed(2) : x >= 0.01 ? x.toFixed(3) : x.toFixed(4);
+    const state = { track: "routed", set: "all" };
+    const draw = () => {
+      const rows = C.tables[`${state.track}_${state.set}`] || [];
+      cal.innerHTML = `
+        <thead><tr><th>Evidence level</th><th class="n">Variants tested</th><th class="barcell"></th><th class="pct">Pathogenic</th><th class="n">Likelihood ratio</th><th>How it performed</th></tr></thead>
+        <tbody>${rows.map(r => {
+          const i = EV_LABEL.findIndex(l => l.toLowerCase() === r.level);
+          return `<tr><td>${i >= 0 ? TV.evChip(i) : esc(r.level)}${r.code && r.code !== "no code" ? `<div class="code small">${esc(r.code)}</div>` : ""}</td><td class="n">${fmt(r.n)}</td>
+            <td class="barcell"><div class="track"><div class="fill" style="width:${r.observed}%;background:var(--${EV_KEYS[Math.max(0, i)]})"></div></div></td>
+            <td class="pct">${r.observed.toFixed(1)}%</td><td class="n">${fmtL(r.lr)}</td><td>${PERF(r.flag)}</td></tr>`;
+        }).join("")}</tbody>
+        <caption>${state.set === "missense" ? "Labelled missense variants" : "All labelled variants"} in the test genes, ${state.track === "routed" ? "With AlphaMissense" : "Our model only"} version. The likelihood ratio compares how often pathogenic and benign test variants land at each level. "Better than labelled" means the level was stronger than its cut-off promises; "Leans pathogenic" marks indeterminate variants that still carry some pathogenic evidence.</caption>`;
+    };
+    const wire = (id, key) => document.getElementById(id).addEventListener("click", e => {
+      const b = e.target.closest("button[data-v]");
+      if (!b) return;
+      state[key] = b.dataset.v;
+      e.currentTarget.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+      draw();
+    });
+    wire("caltrack", "track"); wire("calset", "set");
+    draw();
+  } else if (cal) {
     const C = S.calibration;
     const order = EV_LABEL.map(s => s.toLowerCase());
     const rows = order.map(b => C.rows.find(r => r.bin === b)).filter(Boolean);

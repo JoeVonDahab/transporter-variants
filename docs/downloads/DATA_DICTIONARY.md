@@ -17,19 +17,29 @@
 | `track` | string | `plus` where AlphaMissense covers the variant, else `native` |
 | `has_alphamissense` | boolean | whether AlphaMissense genuinely covers this variant |
 | `score` | float 0-1 | pathogenicity score from the named track |
-| `lr` | float | likelihood ratio of this score bin against the base rate |
-| `evidence` | string | ACMG strength derived from `lr`: pathogenic very strong / strong / moderate / supporting, indeterminate, benign supporting / moderate / strong |
+| `lr` | float | local likelihood ratio at this score: (P/LP density / B/LB density) in a sliding score window, ClinGen method (Pejaver et al. 2022); prior-free |
+| `evidence` | string | evidence strength from the ClinGen PP3/BP4 calibration: pathogenic very strong / strong / moderate / supporting, indeterminate, benign supporting / moderate / strong |
+| `acmg_code` | string | ACMG/AMP code for missense variants: PP3_Supporting, PP3_Moderate, PP3_Strong (also for `evidence` = pathogenic very strong; PP3 is capped at Strong), BP4_Supporting, BP4_Moderate, BP4_Strong; blank for indeterminate and for every non-missense variant |
+| `evidence_v1` | string | the 1.0.x label (Tavtigian OddsPath bins at the dataset base rate), kept for comparison; superseded |
 | `v2_native` | float | our model alone, for every variant |
 | `v2_plus` | float | our model with AlphaMissense; **imputes AlphaMissense where absent, so read it only where `has_alphamissense` is TRUE** |
 | `alphamissense` | float | AlphaMissense score where available |
 
 ## Evidence thresholds
 
-Likelihood ratios are binned at the odds of pathogenicity behind the ACMG combining rules (Tavtigian et al. 2018): 350 very strong, 18.7 strong, 4.33 moderate, 2.08 supporting, and the reciprocals for benign evidence.
+ClinGen's calibration for computational evidence (Pejaver et al. 2022): prior probability of pathogenicity 0.0441; local likelihood ratio estimated in a sliding window around each score (at least 100 labelled variants and 3% of the unit's variants); thresholds where the one-sided 95% bootstrap bound reaches LR 2.406 (supporting), 5.790 (moderate), 33.53 (strong), 1,124 (very strong), and the reciprocals for benign. A level the bound never reaches is not assigned. Calibrated separately for our score on missense, our score on other classes, and our score with AlphaMissense where AlphaMissense exists, on labelled variants the model never trained on.
 
-## Observed purity of each bin
+| Unit | benign strong | benign moderate | benign supporting | pathogenic supporting | pathogenic moderate | pathogenic strong | pathogenic very strong |
+|---|---|---|---|---|---|---|---|
+| native_missense | - | <= 0.1747 | <= 0.2469 | >= 0.9289 | >= 0.9724 | - | - |
+| native_other | <= 0.0045 | <= 0.0203 | <= 0.4184 | >= 0.5677 | >= 0.5677 | >= 0.9441 | - |
+| plus | <= 0.0094 | <= 0.0920 | <= 0.3499 | >= 0.9525 | >= 0.9660 | - | - |
 
-Measured on gene-disjoint halves of the held-out labelled set, so no gene calibrated the bin its own variants fall in. See `CALIBRATION_CHECK.md` for the full table.
+Units: `native_missense` = `v2_native` on missense (native track; routed rows without AlphaMissense); `native_other` = `v2_native` on every other class; `plus` = `v2_plus` where `has_alphamissense` is TRUE (routed track).
+
+## Observed evidence of each level
+
+Measured on gene-disjoint halves of the held-out labelled set, so no gene calibrated the level its own variants fall in. See `CALIBRATION_CHECK.md` for the full table, including the observed likelihood ratio of every level.
 
 ## Activity and mechanism layers
 
