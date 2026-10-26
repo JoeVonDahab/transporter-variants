@@ -24,6 +24,7 @@
 
   --act-lo: #3b1f5e; --act-mid: #9a5aa8; --act-hi: #ece4f0;
   --mech-expr: #b7791f; --mech-act: #2e7d5b;
+  --dim3d: #d6dbde; --hl: #e3a008;
 
   --serif: "Spectral", Georgia, "Times New Roman", serif;
   --sans: "Public Sans", "Segoe UI", system-ui, sans-serif;
@@ -46,7 +47,7 @@
     --ind: #59656b;
     --bp: #3a5d70; --bm: #3f86ad; --bs: #6fb6de;
     --act-lo: #c58be0; --act-mid: #7d4c92; --act-hi: #2c2434;
-    --mech-expr: #e0a54a; --mech-act: #5cc293;
+    --mech-expr: #e0a54a; --mech-act: #5cc293; --dim3d: #3a474d; --hl: #f5b82e;
     color-scheme: dark;
   }
 }
@@ -60,7 +61,7 @@
   --ind: #59656b;
   --bp: #3a5d70; --bm: #3f86ad; --bs: #6fb6de;
   --act-lo: #c58be0; --act-mid: #7d4c92; --act-hi: #2c2434;
-  --mech-expr: #e0a54a; --mech-act: #5cc293;
+  --mech-expr: #e0a54a; --mech-act: #5cc293; --dim3d: #3a474d; --hl: #f5b82e;
   color-scheme: dark;
 }
 
@@ -348,6 +349,7 @@ footer p { max-width: 70ch; }
 .wave { position: relative; padding: 4px 0 0; }
 .wave svg { display: block; width: 100%; height: auto; touch-action: pan-x pan-y; user-select: none; }
 .swipe-hint { display: none; }
+@media (max-width: 760px) { .mol .molhint .more { display: none; } }
 @media (max-width: 760px) {
   .wave { overflow-x: auto; overscroll-behavior-x: contain; }
   .wave svg { min-width: 760px; }
@@ -372,6 +374,11 @@ footer p { max-width: 70ch; }
 .wave .motif { fill: var(--ink-2); }
 .wave .domt { font: 600 11px var(--sans); fill: var(--ink-2); }
 .wave .brush { fill: var(--accent); opacity: 0.12; }
+.wave .partband { fill: var(--hl); opacity: 0.22; }
+.wave .partedge { stroke: var(--hl); stroke-width: 2; }
+.parthint { display: flex; gap: 8px; align-items: baseline; font-size: 0.86rem; color: var(--ink-2); margin: 0 0 8px; }
+.sw-part { flex: none; width: 12px; height: 12px; border-radius: 2px; background: var(--hl); transform: translateY(1px); }
+.mol .molreset { position: absolute; top: 10px; right: 10px; z-index: 2; padding: 5px 11px; font-size: 0.85rem; background: var(--surface); }
 .map-foot { display: flex; flex-wrap: wrap; gap: 8px 24px; justify-content: space-between; align-items: center; padding: 8px 14px 12px; font-size: 0.84rem; color: var(--ink-2); }
 .scale { display: inline-flex; align-items: center; gap: 8px; margin-right: 18px; }
 .scale .ramp { width: 160px; height: 10px; border-radius: 2px; }
@@ -379,7 +386,7 @@ footer p { max-width: 70ch; }
 .mol { position: relative; min-height: 440px; background: var(--paper); }
 .mol .viewer { position: absolute; inset: 0; }
 .mol .molmsg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; padding: 30px; color: var(--ink-2); font-size: 0.95rem; }
-.mol .molhint { position: absolute; left: 12px; bottom: 10px; font-size: 0.78rem; color: var(--ink-3); pointer-events: none; }
+.mol .molhint { position: absolute; left: 10px; right: 10px; bottom: 8px; font-size: 0.78rem; color: var(--ink-2); pointer-events: none; background: color-mix(in srgb, var(--paper) 85%, transparent); padding: 4px 8px; border-radius: 4px; }
 .resinfo { padding: 18px 20px; border-left: 1px solid var(--rule); font-size: 0.93rem; overflow: auto; max-height: 520px; }
 .resinfo h3 { font-family: var(--sans); font-size: 1rem; font-weight: 700; margin-bottom: 6px; }
 .resinfo .empty { color: var(--ink-2); }

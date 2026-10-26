@@ -298,7 +298,15 @@ const TVMap = (() => {
     resAt(px) { return Math.round(this.z[0] + (px - this.X0) / (this.X1 - this.X0) * (this.z[1] - this.z[0])); }
     setMetric(m) { this.metric = m; this.render(); }
     setPlddt(arr) { this.plddt = arr; if (this.metric === "plddt") this.render(); }
-    select(pos) { this.sel = pos; this.render(); }
+    select(pos, part = null) { this.sel = pos; this.part = pos ? part : null; this.render(); }
+    // the stretch of chain a position belongs to: its helix or loop, or a window if the loop is long
+    partAround(p) {
+      const run = this.topo.runs.find(r => r.a <= p && p <= r.b);
+      if (!run) return { range: [Math.max(1, p - 10), Math.min(this.L, p + 10)], name: `Residues near ${p}` };
+      if (run.b - run.a + 1 <= 45) return { range: [run.a, run.b], name: run.name };
+      const a = Math.max(run.a, p - 12), b = Math.min(run.b, p + 12);
+      return { range: [a, b], name: `Part of the ${run.name.charAt(0).toLowerCase()}${run.name.slice(1)}` };
+    }
     zoom(a, b) {
       if (a == null) this.z = [1, this.L];
       else {
@@ -339,6 +347,13 @@ const TVMap = (() => {
         out.push(`<text x="6" y="${yT - 10}" class="zl">Outside</text><text x="6" y="${yB + 20}" class="zl">Cytoplasm</text><text x="6" y="${(yT + yB) / 2 + 4}" class="zl">Membrane</text>`);
       }
       out.push(`<g clip-path="url(#clip-${this.meta.gene})">`);
+      // the selected part, shaded so it matches what is highlighted in 3D
+      if (this.part && this.part[1] >= lo && this.part[0] <= hi) {
+        const xa = this.x(Math.max(lo, this.part[0]) - 0.5), xb = this.x(Math.min(hi, this.part[1]) + 0.5);
+        const hb = (this.hasLane ? H - 52 : H - 30) - 2;
+        out.push(`<rect x="${xa.toFixed(1)}" y="2" width="${Math.max(2, xb - xa).toFixed(1)}" height="${hb}" class="partband"/>`);
+        out.push(`<line x1="${xa.toFixed(1)}" x2="${xa.toFixed(1)}" y1="2" y2="${hb + 2}" class="partedge"/><line x1="${xb.toFixed(1)}" x2="${xb.toFixed(1)}" y1="2" y2="${hb + 2}" class="partedge"/>`);
+      }
       // helix outlines and numbers
       if (this.topo.hasTM) {
         for (const r of this.topo.runs) {
@@ -597,15 +612,45 @@ const TVMap = (() => {
       }, (atom, viewer) => { if (this.hoverLabel) { viewer.removeLabel(this.hoverLabel); this.hoverLabel = null; } });
       this.viewer.setClickable({}, true, atom => { if (this.mapped && this.onSelect) this.onSelect(atom.resi); });
       this.paint();
-      // fit once the container has its final size, then keep the canvas matched to it
-      let fitted = false;
+      // Keep the whole protein framed while the page settles, until the visitor moves it themselves
+      // or selects a part. Fitting only once left the model off-centre when the layout shifted.
+      this.userMoved = false;
+      el.addEventListener("pointerdown", () => { this.userMoved = true; });
       const fit = () => {
         this.viewer.resize();
-        if (!fitted && el.clientWidth > 0) { this.viewer.zoomTo({}); this.viewer.zoom(1.15); fitted = true; }
+        if (el.clientWidth > 0 && !this.userMoved && !this.part) this.frameAll(0);
         this.viewer.render();
       };
       requestAnimationFrame(fit);
       new ResizeObserver(fit).observe(el);
+      const reset = this.host.querySelector(".molreset");
+      if (reset) {
+        reset.hidden = false;
+        reset.addEventListener("click", e => { e.stopPropagation(); this.resetView(); });
+      }
+    }
+    // frame the confidently predicted core, so long disordered tails do not shrink the protein
+    frameAll(ms = 500) {
+      if (!this.core) {
+        const good = [];
+        for (const [r] of this.ca) if ((this.plddt[r] ?? 0) >= 70) good.push(r);
+        this.core = good.length >= this.ca.size * 0.4 ? { resi: good } : {};
+      }
+      clearTimeout(this._zt);
+      this.viewer.zoomTo(this.core, ms);
+      if (ms) this._zt = setTimeout(() => this.viewer.zoom(1.1, 250), ms + 20);
+      else this.viewer.zoom(1.1);
+    }
+    resetView() {
+      this.userMoved = false;
+      if (this.part) this.framePart(this.part); else this.frameAll(500);
+    }
+    framePart(part) {
+      const sel = { resi: `${part[0]}-${part[1]}` };
+      this.viewer.zoomTo(sel, 600);
+      // pull back a little so the rest of the protein stays in view around the highlighted part
+      clearTimeout(this._zt);
+      this._zt = setTimeout(() => { this.viewer.zoom(0.6, 350); }, 620);
     }
     setMetric(m) { this.metric = m; this.paint(); }
     colorFor() {
@@ -622,27 +667,40 @@ const TVMap = (() => {
     paint() {
       if (!this.viewer) return;
       const f = this.colorFor();
-      this.viewer.setStyle({}, { cartoon: { colorfunc: atom => f(atom.resi), thickness: 0.4 } });
+      // with a part selected, it keeps its colours and the rest of the protein turns pale grey
+      // with a part selected, the part is drawn in one bold highlight colour (the same as its band on
+      // the map) and the rest of the protein turns pale grey, so it is obvious where the part is
+      const part = this.part, dim = cssVar("--dim3d") || "#d3d9dc", hl = cssVar("--hl") || "#e8a200";
+      const inPart = r => !part || (r >= part[0] && r <= part[1]);
+      this.viewer.setStyle({}, { cartoon: { colorfunc: atom => part ? dim : f(atom.resi), thickness: 0.4 } });
+      if (part) this.viewer.setStyle({ resi: `${part[0]}-${part[1]}` }, { cartoon: { color: hl, thickness: 1.0, width: 1.4 } });
       this.viewer.removeAllShapes();
       if (this.mapped && this.wave.showVariants) {
         const dense = this.wave.byPos.size > 400;
         for (const [p, arr] of this.wave.byPos) {
+          if (!inPart(p)) continue;
           const c = this.ca.get(p);
           if (!c) continue;
-          this.viewer.addSphere({ center: { x: c[0], y: c[1], z: c[2] }, radius: (dense ? 0.45 : 0.7) + Math.min(arr.length, 4) * 0.1, color: cssVar(`--${TV.EV_KEYS[arr[0].ev]}`) });
+          this.viewer.addSphere({ center: { x: c[0], y: c[1], z: c[2] }, radius: (dense && !part ? 0.45 : 0.7) + Math.min(arr.length, 4) * 0.1, color: cssVar(`--${TV.EV_KEYS[arr[0].ev]}`) });
         }
       }
       if (this.sel && this.ca.get(this.sel)) {
-        this.viewer.setStyle({ resi: this.sel }, { cartoon: { colorfunc: atom => f(atom.resi), thickness: 0.4 }, stick: { colorscheme: "default", radius: 0.22 } });
+        this.viewer.setStyle({ resi: this.sel }, part
+          ? { cartoon: { color: hl, thickness: 1.0, width: 1.4 }, stick: { colorscheme: "default", radius: 0.3 } }
+          : { cartoon: { colorfunc: atom => f(atom.resi), thickness: 0.4 }, stick: { colorscheme: "default", radius: 0.25 } });
         const c = this.ca.get(this.sel);
-        this.viewer.addSphere({ center: { x: c[0], y: c[1], z: c[2] }, radius: 2.4, color: cssVar("--ink"), opacity: 0.22 });
+        this.viewer.addSphere({ center: { x: c[0], y: c[1], z: c[2] }, radius: 2.8, color: cssVar("--ink"), opacity: 0.3 });
       }
       this.viewer.render();
     }
-    select(p, focus = true) {
+    select(p, part = null, focus = true) {
       this.sel = p;
+      this.part = p ? part : null;
       this.paint();
-      if (focus && this.viewer && this.ca.get(p)) this.viewer.center({ resi: p }, 500);
+      if (!focus || !this.viewer) return;
+      if (this.part) this.framePart(this.part);
+      else if (p && this.ca.get(p)) this.viewer.center({ resi: p }, 500);
+      else { this.userMoved = false; this.frameAll(500); }
     }
     regional(p) { return this.spatial && this.spatial[this.metric] ? this.spatial[this.metric].get(p) : undefined; }
   }

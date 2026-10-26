@@ -112,7 +112,8 @@
             <div class="mol" id="mol">
               <div class="viewer"></div>
               <div class="molmsg"></div>
-              <div class="molhint">Drag to rotate. Click the structure, then scroll to zoom. Click a residue to select it. Colours are averaged over residues within about 10 Å of each other.</div>
+              <button type="button" class="btn ghost molreset" hidden>Reset view</button>
+              <div class="molhint">Drag to rotate. Click a residue to select it.<span class="more"> Click the structure, then scroll to zoom. Colours are averaged over residues within about 10 Å of each other.</span></div>
             </div>
             <aside class="resinfo" id="resinfo" aria-live="polite"></aside>
           </div>
@@ -277,6 +278,7 @@
     if (S.mol && S.mol.plddt && S.mol.plddt[p] != null) rows.push(`<dt>AlphaFold confidence</dt><dd>${S.mol.plddt[p].toFixed(0)} of 100${S.mol.plddt[p] < 50 ? ", very low, likely disordered" : ""}</dd>`);
     box.innerHTML = `
       <h3>${esc(aa)}${p}</h3>
+      ${S.part ? `<p class="parthint"><span class="sw-part"></span>${S.mol && S.mol.mapped ? "Highlighted on the map and the structure" : "Highlighted on the map"}: ${esc(S.part.name)} (${esc(seq[S.part.range[0] - 1])}${S.part.range[0]}–${esc(seq[S.part.range[1] - 1])}${S.part.range[1]})</p>` : ""}
       <dl>${rows.join("")}</dl>
       <h3>${R ? `Variants in ${esc(seq[R[0] - 1])}${R[0]}–${esc(seq[R[1] - 1])}${R[1]}` : "Variants at this residue"}</h3>
       ${vs.length ? `<ul>${vs.map(v => `<li><span class="mono">${esc(v.pv)}</span>${evChip(v.ev)}</li>`).join("")}</ul>` : `<p class="empty small">No ClinVar missense variant ${R ? "in this region" : `at ${esc(aa)}${p}`}.</p>`}
@@ -284,10 +286,25 @@
     box.querySelector("#clearpos").addEventListener("click", () => selectPos(null));
   }
 
-  function selectPos(p, range = null) {
+  // A click picks a residue; the part of the protein it sits in (its helix or loop) is highlighted
+  // on the map and in 3D. A click on a listed region picks that region as the part.
+  function partFor(p, range) {
+    if (!p) return null;
+    if (range) return { range, name: `${S.wave.topo.regionOf[p]}, region ${range[0]}–${range[1]}` };
+    return S.wave.partAround(p);
+  }
+  function selectPos(p, range = null, origin = null) {
     S.pos = p; S.range = p ? range : null; S.page = 0;
-    S.wave.select(p);
-    if (S.mol) S.mol.select(p);
+    S.part = partFor(p, range);
+    const r = S.part ? S.part.range : null;
+    S.wave.select(p, r);
+    // a click on the structure itself keeps the camera where the visitor put it
+    if (S.mol) S.mol.select(p, r, origin !== "mol");
+    // when the 3D view sits below the map (narrow screens), bring it into view after a map click
+    if (origin === "map" && p && S.mol && S.mol.viewer) {
+      const box = app.querySelector("#mol").getBoundingClientRect();
+      if (box.top > innerHeight * 0.7 || box.bottom < 0) app.querySelector("#mol").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
     renderResInfo();
     renderFilters();
     renderTable();
@@ -525,20 +542,20 @@
 
     S.wave = new TVMap.Wave(app.querySelector("#wave"), {
       meta: S.meta, variants: S.placed,
-      onSelect: p => selectPos(S.pos === p ? null : p),
+      onSelect: p => selectPos(S.pos === p ? null : p, null, "map"),
       onZoom: z => { app.querySelector("#unzoom").hidden = !z; },
     });
     renderSymLegend();
     mapNotes();
     setMetric("patho");
-    if (S.pos) S.wave.select(S.pos);
+    if (S.pos) { S.part = partFor(S.pos, null); S.wave.select(S.pos, S.part && S.part.range); }
     renderResInfo();
     renderFilters();
     renderTable();
 
     if (S.meta.uniprot && S.meta.sequence) {
-      S.mol = new TVMap.Mol(app.querySelector("#mol"), { meta: S.meta, wave: S.wave, onSelect: p => selectPos(p) });
-      const go = () => S.mol.load().then(() => { S.mol.setMetric(S.metric); if (S.pos) S.mol.select(S.pos); renderResInfo(); });
+      S.mol = new TVMap.Mol(app.querySelector("#mol"), { meta: S.meta, wave: S.wave, onSelect: p => selectPos(p, null, "mol") });
+      const go = () => S.mol.load().then(() => { S.mol.setMetric(S.metric); if (S.pos) S.mol.select(S.pos, S.part && S.part.range); renderResInfo(); });
       if ("IntersectionObserver" in window) {
         const io = new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) { io.disconnect(); go(); } }, { rootMargin: "200px" });
         io.observe(app.querySelector("#mol"));

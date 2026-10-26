@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=Spectral:ital,wght@0,500;0,600;1,500&display=swap">
-<link rel="stylesheet" href="assets/style.css?v=a74d1a131a">
+<link rel="stylesheet" href="assets/style.css?v=4b6ba8d60f">
 </head>
 <body>
 <header class="topbar">
@@ -103,7 +103,8 @@
       <p>The line is the protein chain, from the first amino acid on the left to the last on the right. Where UniProt marks a helix that crosses the membrane, the chain crosses the yellow band. Loops above the band are outside the cell, and loops below it are in the cytoplasm.</p>
       <p>The colour at each position is the average prediction for ClinVar missense variants at and near that position. Red means variants there tend to be damaging. Blue means they tend to be tolerated. Grey means there are too few variants nearby to say. Only variants reported in ClinVar are counted, so a grey stretch is not necessarily unimportant.</p>
       <p>The 3D view shows the AlphaFold model of the protein, coloured the same way but averaged over residues that are close together in space. Dots on the map and spheres in 3D are individual ClinVar variants, coloured by evidence level.</p>
-      <p>Drag across the map to zoom into a region. Click a position, or a region in the list beside the 3D view, to show only those variants in the table.</p>
+      <p>Click any position on the map to see which part of the protein it is. The helix or loop it belongs to is shaded gold on the map and drawn in gold on the 3D structure, with the rest of the protein in grey, and the view turns to face it. The table then shows only the variants at that position. Clicking a region in the list beside the 3D view does the same for that region. Use “Clear selection” to go back, and “Reset view” to recentre the structure.</p>
+      <p>Drag across the map to zoom into a stretch of the chain. Double-click it to zoom back out.</p>
     </section>
 
     <section id="activity">
